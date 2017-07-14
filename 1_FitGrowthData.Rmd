@@ -39,7 +39,9 @@ colnames(datain)<-c("R","g")
 ```
 
 The next block defines the function `Growth` using a simple Michalis-Menten function form
-$$g= g_{max} \frac{R}{R+k}$$
+
+$g= g_{max} \frac{R}{R+k}$
+
 `Growth` 
 takes two arguments :
 

@@ -35,8 +35,10 @@ colnames(datain)<-c("R","g")
 ```
 
 The next block defines the function `Growth` using a simple Michalis-Menten function form
-$$g= g\_{max} \\frac{R}{R+k}$$
- `Growth` takes two arguments :
+
+$g= g\_{max} \\frac{R}{R+k}$
+
+`Growth` takes two arguments :
 
 -   `pars` is a vector of two parameter : `gM` (*g*<sub>*m**a**x*</sub>) is the maximum growth rate, and `k` is the constant which determines how strongly the resource availability restricts growth (when *R* = *k*, *g* = *g*<sub>*m**a**x*</sub>/2).
 -   `R` is the resource availability
@@ -104,8 +106,8 @@ summary(Fita)
     ## 
     ## Parameters:
     ##    Estimate Std. Error t value Pr(>|t|)    
-    ## k   4.64658    1.47467   3.151  0.00447 ** 
-    ## gM  0.50853    0.02011  25.291  < 2e-16 ***
+    ## k   4.64677    1.47469   3.151  0.00447 ** 
+    ## gM  0.50854    0.02011  25.290  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
@@ -121,7 +123,7 @@ coef(Fita)
 ```
 
     ##         k        gM 
-    ## 4.6465817 0.5085347
+    ## 4.6467730 0.5085366
 
 We can now check visually that the fitted parameters provides a better description of the data, by evaluating `Growth` on the same range of *R* but using the new parameters.
 
@@ -206,7 +208,7 @@ MCa <- modMCMC(f = ModelCostb,
                wvar0 = 0.1,niter=5000)#,
 ```
 
-    ## number of accepted runs: 1718 out of 5000 (34.36%)
+    ## number of accepted runs: 1825 out of 5000 (36.5%)
 
 ``` r
 # This plots provides the selected parameter distributions
