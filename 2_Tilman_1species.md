@@ -274,7 +274,7 @@ CRL<-modCRL(fCRL,parRange=parRange,num = 20)
 
 ![](2_Tilman_1species_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
-Next we will see what happens when two species competes for the same resources : [the 2 species case](3_Tilman_2species.pdf)
+Next we will see what happens when two species competes for the same resources : [the 2 species case](3_Tilman_2species.md)
 
 References
 ==========
