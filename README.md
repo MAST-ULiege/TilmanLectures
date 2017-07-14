@@ -5,3 +5,6 @@ Those are practical sessions going along with the lecture : [OCEA0096-1](http://
 1. Using R package to calibrate a model on the basis of observations [Session 1 ](1_FitGrowthData.md)
 2. Tilmans Ressource Competition Theory, Part 1 : Ressources  [Session 2 ](2_Tilman_1species.md)
 3. Tilmans Ressource Competition Theory, Part 2 : Competitions  [Session 3 ](3_Tilman_2species.md)
+
+
+Lecture's note can be found [on overleaf](https://www.overleaf.com/read/krhfddzjxnqc)
