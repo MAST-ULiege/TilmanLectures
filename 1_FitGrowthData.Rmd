@@ -2,7 +2,7 @@
 title: "Model Calibration with the FME package"
 author: "Arthur Capet"
 date: "June 14, 2017"
-output: pdf_document
+output: github_document
 bibliography: biblio.bib
 urlcolor: blue
 ---
