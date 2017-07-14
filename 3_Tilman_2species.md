@@ -1,26 +1,21 @@
----
-title: "Tilman's Resource Competition : 2 species 2 resources"
-author: "Arthur Capet"
-date: "June 15, 2017"
-output: github_document
-bibliography: biblio.bib
-urlcolor: blue
----
+Tilman's Resource Competition : 2 species 2 resources
+================
+Arthur Capet
+June 15, 2017
 
-This script allows to visualize the dynamics of two species depending competing for two ressources[@TILMAN].
-You might want to have a look on the [course notes](https://www.overleaf.com/read/krhfddzjxnqc) before going any further.
+This script allows to visualize the dynamics of two species depending competing for two ressources(Tilman 1982). You might want to have a look on the [course notes](https://www.overleaf.com/read/krhfddzjxnqc) before going any further.
 
-```{r,results='hide', message=FALSE}
+``` r
 library("deSolve")
 library("FME")
 ```
-  
-# Function and parameter definitions
 
-Parameters for growth are now given for both species $N_1$ and $N_2$.
-In order to be callable for both species, the function `Growth` now receives species-specifc parameter as an input argument ( in [the 1 species case](2_Tilman_1species.pdf), those parameters where "global", here they are "local"). 
+Function and parameter definitions
+==================================
 
-```{r}
+Parameters for growth are now given for both species *N*<sub>1</sub> and *N*<sub>2</sub>. In order to be callable for both species, the function `Growth` now receives species-specifc parameter as an input argument ( in [the 1 species case](2_Tilman_1species.pdf), those parameters where "global", here they are "local").
+
+``` r
 pars<-c(
   # Populations
   mN1  = .1     ,  # mortality N1
@@ -162,11 +157,12 @@ simpleg <- function (t, X, parms) {
 }
 ```
 
-# A first simulation
+A first simulation
+==================
 
 As before we start with a dynamic run
-```{r}
 
+``` r
 X0 <- with(as.list(pars),c(N1_0,N2_0,R1_0,R2_0))
 times <- seq(0, 200, by = pars["dt"]) # output wanted at these time intervals
 
@@ -175,10 +171,14 @@ colnames(out)<-c("time","N1","N2","R1","R2")
 plot(out)
 ```
 
-# Exploration of the resource space
-We'll use the steady simulation to illustrate competition, trajectories and equilibrium on the resource plane.
-First let us compute the growth values over hte resource plane for $N_1$ and $N_2$.
-```{r}
+![](3_Tilman_2species_files/figure-markdown_github/unnamed-chunk-3-1.png)
+
+Exploration of the resource space
+=================================
+
+We'll use the steady simulation to illustrate competition, trajectories and equilibrium on the resource plane. First let us compute the growth values over hte resource plane for *N*<sub>1</sub> and *N*<sub>2</sub>.
+
+``` r
 outsteady<-steady(y = X0, time=c(0,Inf),func = simpleg, parms = pars, method= "runsteady")
 outs <- outsteady$y
 names(outs)<-c("N1","N2","R1","R2")
@@ -201,9 +201,10 @@ f1space <- outer(R1space,R2space,Growth,Pp=pN1)
 f2space <- outer(R1space,R2space,Growth,Pp=pN2)
 ```
 
-## PLOT 1 : Trajectories
+PLOT 1 : Trajectories
+---------------------
 
-```{r}
+``` r
 # ZNGI for N1
 contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),col="red",lty = "dotted", labels="ZNGI 1",
         lwd = 3,
@@ -241,17 +242,24 @@ parRange <- matrix(nr = 4, nc = 2, c(0.2, 0.2, 10,10 ,
                                        50,   50, 80,80 ),
                      dimnames = list(c("N1_0","N2_0","R1_0","R2_0"), c("min", "max")))
 print(parRange)
-  
+```
+
+    ##       min max
+    ## N1_0  0.2  50
+    ## N2_0  0.2  50
+    ## R1_0 10.0  80
+    ## R2_0 10.0  80
+
+``` r
 # the main call to perturbate parameter and display multiple trajectories
 CRL<-modCRL(fCRL,parRange=parRange,num = 20)
 ```
-##     PLOT2 : perturbation on the supply point
 
-Instead of perturbating initial conditions, we now perturbate supply point value. 
-You'll see that the position of the supply point determines the position of the equilibrium point somewhere over a *ZNGI*
-```{r}
+![](3_Tilman_2species_files/figure-markdown_github/unnamed-chunk-5-1.png) \#\# PLOT2 : perturbation on the supply point
 
+Instead of perturbating initial conditions, we now perturbate supply point value. You'll see that the position of the supply point determines the position of the equilibrium point somewhere over a *ZNGI*
 
+``` r
   fCRL<-function(parinit){
     parsl<-pars
     parsl[names(parinit)]<-parinit
@@ -273,7 +281,13 @@ You'll see that the position of the supply point determines the position of the 
                                        50,   50, 80,80 ),
                      dimnames = list(c("g1","g2"), c("min", "max")))
   parRange
+```
 
+    ##    min max
+    ## g1   0  80
+    ## g2   0  80
+
+``` r
   contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),col="red",lty = "dotted", labels="ZNGI 1",
           lwd = 3,
           vfont = c("sans serif", "plain"),
@@ -284,14 +298,13 @@ You'll see that the position of the supply point determines the position of the 
   
 
   CRL<-modCRL(fCRL,parRange=parRange,num = 20)
-
 ```
-## PLOT3: perturbation on the supply point - Cohabitation ?  
 
-Finally, we will plot the supply point with a certain color, according to the results of competition at equilibrium: Which species survives? Is cohabitation possible ? 
+![](3_Tilman_2species_files/figure-markdown_github/unnamed-chunk-6-1.png) \#\# PLOT3: perturbation on the supply point - Cohabitation ?
 
-```{r}
+Finally, we will plot the supply point with a certain color, according to the results of competition at equilibrium: Which species survives? Is cohabitation possible ?
 
+``` r
 if (TRUE) {
   
   fCRL<-function(parinit){
@@ -344,10 +357,11 @@ if (TRUE) {
   
   CRL<-modCRL(fCRL,parRange=parRange,num = 50)
 }
-
 ```
 
-# References
+![](3_Tilman_2species_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
+References
+==========
 
-  
+Tilman, David. 1982. *Resource Competition and Community Structure*. Princeton university press.
