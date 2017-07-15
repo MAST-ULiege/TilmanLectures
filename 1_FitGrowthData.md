@@ -13,7 +13,7 @@ When you click the **Knit** button in Rstudio a pdf will be generated that inclu
 Objectives
 ----------
 
-This is an example of script, as should be produced during practical session of the lecture "Modélisation des écosystèmes et des cycles biogéochimiques" (Partim : Resource competition). It consist in calibrating the parameter of a simple growth function, in order to render observation of growth rates measured at different resource availability. (Those data have been created artificially and are located in a [text file](G1R1.txt) ). To do so we will exploit functions from "FME" library (Soetaert and Petzoldt 2010). The notions we are going to consider are pretty well explained in [this documentation](ftp://videolan.cs.pu.edu.tw/network/CRAN/web/packages/FME/vignettes/FME.pdf "Original FME paper").
+This is an example of script, as should be produced during practical session of the lecture "Modélisation des écosystèmes et des cycles biogéochimiques" (Partim : Resource competition). It consists in calibrating the parameter of a simple growth function, in order to render observation of growth rates measured at different resource availability. (Those data have been created artificially and are located in a [text file](G1R1.txt) ). To do so we will exploit functions from "FME" library (Soetaert and Petzoldt 2010). The notions we are going to consider are explained in [this documentation](ftp://videolan.cs.pu.edu.tw/network/CRAN/web/packages/FME/vignettes/FME.pdf "Original FME paper").
 
 To start, we simply load the FME library (which will automatically load the dependence libraries).
 
@@ -27,14 +27,14 @@ library(FME)
 
     ## Loading required package: coda
 
-Now we load the data using the `read.table` function which store them in a "data frame" structure (`datain`). We then assign names to the columns of `datain`. ( Remember the command `c("R","g")` create a vector with two elements : "R" and "g"). Here *R* goes for *ressource availability* and *g* for corresponding *growth rates*.
+Now we load the data using the `read.table` function which store them in a "data frame" structure (`datain`). We then assign names to the columns of `datain`. ( Remember the command `c("R","g")` create a vector with two string elements : "R" and "g"). Here *R* goes for *ressource availability* and *g* for corresponding *growth rates*.
 
 ``` r
 datain<-read.table(file="G1R1.txt")
 colnames(datain)<-c("R","g")
 ```
 
-The next block defines the function `Growth` using a simple Michalis-Menten function form
+The next block defines the function `Growth`, in the form of a Michalis-Menten dependency to resource availability.
 
 $g= g\_{max} \\frac{R}{R+k}$
 
