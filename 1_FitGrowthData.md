@@ -178,10 +178,11 @@ A few question to reflect on :
 
 Note (by testing it) that *L*<sub>1</sub> and *L*<sub>2</sub> norms depend on the *R* value considered and on the initial parameter values.
 
-Distribution of parameters
+Further approaches
 --------------------------
 
-Instead of identifying a single set of "best" parameters, other approaches provides a probality distribution for parameter values. It is better in the sense that is is statistically exploitable to derive error on model estimates. One such method is to use Monte Carlo Markov Chain. Here the transfer function returns an object `ModCost`.
+Instead of a single value, other approaches provide a probality distribution for each parameter. Such approaches are more complete, as those distributions are statistically exploitable to estimate the error of model predictions.
+One such method is to use Monte Carlo Markov Chain. Here the transfer function returns an object `ModCost`.
 
 ``` r
 ModelCostb <- function(P) {
@@ -217,7 +218,7 @@ pairs(MCa)
 
 ![](1_FitGrowthData_files/figure-markdown_github/unnamed-chunk-10-1.png)
 
-Given a distribution of parameters, such as provided from the previous procedure, the function `sensRange` allows to assess the distribution of model outputs. In this case we can consider it illustrates the uncertainties of model estimates deriving from the uncertainity on the calibrated parameters.
+Likelihood distributions for parameters, such as provided from the previous MCMC procedure, can be fed to the function `sensRange` to assess the resulting likelihood distribution of model outputs. In this case we can consider that this range illustrates the uncertainty of model predictions deriving from the uncertainity on the calibrated parameters.
 
 ``` r
 sR <- sensRange(func=Growth, parms = coef(Fitb),
