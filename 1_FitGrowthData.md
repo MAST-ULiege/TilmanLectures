@@ -13,7 +13,7 @@ When you click the **Knit** button in Rstudio a pdf will be generated that inclu
 Objectives
 ----------
 
-This is an example of script, as should be produced during practical session of the lecture "Modélisation des écosystèmes et des cycles biogéochimiques" (Partim : Resource competition). It consist in calibrating the parameter of a simple growth function, in order to render observation of growth rates measured at different resource availability. (Those data have been created artificially and are located in a [text file](G1R1.txt) ). To do so we will exploit functions from "FME" library (Soetaert and Petzoldt 2010). The notions we are going to consider are pretty well explained in [this documentation](ftp://videolan.cs.pu.edu.tw/network/CRAN/web/packages/FME/vignettes/FME.pdf "Original FME paper").
+This is an example of script, as should be produced during practical session of the lecture "Modélisation des écosystèmes et des cycles biogéochimiques" (Partim : Resource competition). It consists in calibrating the parameter of a simple growth function, in order to render observation of growth rates measured at different resource availability. (Those data have been created artificially and are located in a [text file](G1R1.txt) ). To do so we will exploit functions from "FME" library (Soetaert and Petzoldt 2010). The notions we are going to consider are explained in [this documentation](ftp://videolan.cs.pu.edu.tw/network/CRAN/web/packages/FME/vignettes/FME.pdf "Original FME paper").
 
 To start, we simply load the FME library (which will automatically load the dependence libraries).
 
@@ -27,14 +27,14 @@ library(FME)
 
     ## Loading required package: coda
 
-Now we load the data using the `read.table` function which store them in a "data frame" structure (`datain`). We then assign names to the columns of `datain`. ( Remember the command `c("R","g")` create a vector with two elements : "R" and "g"). Here *R* goes for *ressource availability* and *g* for corresponding *growth rates*.
+Now we load the data using the `read.table` function which store them in a "data frame" structure (`datain`). We then assign names to the columns of `datain`. ( Remember the command `c("R","g")` create a vector with two string elements : "R" and "g"). Here *R* goes for *ressource availability* and *g* for corresponding *growth rates*.
 
 ``` r
 datain<-read.table(file="G1R1.txt")
 colnames(datain)<-c("R","g")
 ```
 
-The next block defines the function `Growth` using a simple Michalis-Menten function form
+The next block defines the function `Growth`, in the form of a Michalis-Menten dependency to resource availability.
 
 $g= g\_{max} \\frac{R}{R+k}$
 
@@ -178,10 +178,11 @@ A few question to reflect on :
 
 Note (by testing it) that *L*<sub>1</sub> and *L*<sub>2</sub> norms depend on the *R* value considered and on the initial parameter values.
 
-Distribution of parameters
+Further approaches
 --------------------------
 
-Instead of identifying a single set of "best" parameters, other approaches provides a probality distribution for parameter values. It is better in the sense that is is statistically exploitable to derive error on model estimates. One such method is to use Monte Carlo Markov Chain. Here the transfer function returns an object `ModCost`.
+Instead of a single value, other approaches provide a probality distribution for each parameter. Such approaches are more complete, as those distributions are statistically exploitable to estimate the error of model predictions.
+One such method is to use Monte Carlo Markov Chain. Here the transfer function returns an object `ModCost`.
 
 ``` r
 ModelCostb <- function(P) {
@@ -217,7 +218,7 @@ pairs(MCa)
 
 ![](1_FitGrowthData_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-10-1.png)
 
-Given a distribution of parameters, such as provided from the previous procedure, the function `sensRange` allows to assess the distribution of model outputs. In this case we can consider it illustrates the uncertainties of model estimates deriving from the uncertainity on the calibrated parameters.
+Likelihood distributions for parameters, such as provided from the previous MCMC procedure, can be fed to the function `sensRange` to assess the resulting likelihood distribution of model outputs. In this case we can consider that this range illustrates the uncertainty of model predictions deriving from the uncertainity on the calibrated parameters.
 
 ``` r
 sR <- sensRange(func=Growth, parms = coef(Fitb),
