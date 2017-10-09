@@ -3,27 +3,27 @@ Tilman's Resource Competition : 1 species 2 resources
 Arthur Capet
 June 15, 2017
 
-This script allows to visualize the dynamics of a single species depending on two ressources (Tilman 1982). You might want to have a look on the [course notes](https://www.overleaf.com/read/krhfddzjxnqc) before going any further.
+This script allows to visualize the dynamics of a single species depending on two ressources (Tilman 1982). You might want to have a look on the [lecture notes](https://www.overleaf.com/read/krhfddzjxnqc) before going any further.
 
 ``` r
 library("deSolve") # For solving differential equations
 library("FME")     # Toolbox to play with model perturbation, sensitivity analysis, etc..
 ```
 
-Our system is defined at a given time by the 3 state variables
+Our system is defined at any given time by 3 state variables :
 
 -   *N*<sub>1</sub> (the population),
 -   *R*<sub>1</sub> and *R*<sub>2</sub> (the ressources).
 
-The growth of *N*<sub>1</sub> will depend on the availability of both resources in a specific way, defined in the function `growth1`.
+The growth of *N*<sub>1</sub> will depend on the availability of both resources in a specific way, as defined in the function `growth1`.
 
 All parameters that will be used later are given in a vector (those used in the growth function, but also those used for initial conditions, resource supply, etc .. )
 
 ``` r
 pars<-c(
-  # Population
+  # 1 Population
   mN1  = .1    ,  # mortality N1
-  # Params for growth
+  ##   Params for growth
   mu1 = .5     ,  # Max Growth 
   limN1R1 = 30 ,  # Half-Saturation R1
   limN1R2 = 40 ,  # Half-Saturation R2
@@ -42,7 +42,7 @@ pars<-c(
 
 The main growth function `growth1` can take different form, representing different kind of resource (cf. lectures). Currently, we just switch to one or another form by commenting/uncommenting part of the code.
 
-`growth1` uses three arguments :
+`growth1` requires three arguments :
 
 -   `R1` and `R2` are the two resources availabilities
 -   `hneed` is a flag. If *False*, the function returns only the growth rate. If *True*, the function also returns `h1` and `h2`, the components of the resource consumption vector.
@@ -68,12 +68,12 @@ growth1<- function (R1,R2,hneed=F) {
      # Interactive Essential #
      #########################
     
-     f1 <- mu1 * f1R1*f1R2
-     a<-.2
-     h1 <- (a)
-     h2 <- (1-a)
-
-     casestring<<-("InteractiveEssential")
+     # f1 <- mu1 * f1R1*f1R2
+     # a<-.2
+     # h1 <- (a)
+     # h2 <- (1-a)
+     # 
+     # casestring<<-("InteractiveEssential")
 
      ##########################
      # Perfectly Substitutive
@@ -95,10 +95,10 @@ growth1<- function (R1,R2,hneed=F) {
      ##########################
      # Antagonistic
      ##########################
-     # f1 <- mu1 * ((R1+R2-R1*R2/80)/ (R1+R2-R1*R2/80+limN1R1+limN1R2))
-     # h1 <- R1/(R1+R2)
-     # h2 <- R2/(R1+R2)
-     # casestring<<-("Antagonistic")
+     f1 <- mu1 * ((R1+R2-R1*R2/80)/ (R1+R2-R1*R2/80+limN1R1+limN1R2))
+     h1 <- R1/(R1+R2)
+     h2 <- R2/(R1+R2)
+     casestring<<-("Antagonistic")
 
      ##########################
      # Switching
@@ -175,7 +175,7 @@ colnames(out)<-c("time","N1","R1","R2")
 plot(out)
 ```
 
-![](2_Tilman_1species_files/figure-markdown_github/dynamic-1.png)
+![](2_Tilman_1species_files/figure-markdown_github-ascii_identifiers/dynamic-1.png)
 
 Steady-state solution
 =====================
@@ -192,8 +192,8 @@ names(outs)<-c("N1","R1","R2")
 print(outs)
 ```
 
-    ##       N1       R1       R2 
-    ## 30.44175 73.91165 15.64660
+    ##         N1         R1         R2 
+    ## 101.554944  12.296704   6.148352
 
 Growth on the resource plane
 ----------------------------
@@ -216,7 +216,7 @@ image(R1space ,R2space ,f1space,main="Iso-growth")
 contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),add=T,col="blue",lty = "dotted", labels="ZNGI",lwd=2)
 ```
 
-![](2_Tilman_1species_files/figure-markdown_github/unnamed-chunk-5-1.png)
+![](2_Tilman_1species_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-5-1.png)
 
 Here we will visualize the trajectory of the simulation we computed just above.
 
@@ -237,7 +237,7 @@ points(outs["R1"],outs["R2"],col='red',cex=1.5)
 points(pars["g1"],pars["g2"],col='blue',cex=1.5,bg='blue',pch=21)
 ```
 
-![](2_Tilman_1species_files/figure-markdown_github/unnamed-chunk-6-1.png)
+![](2_Tilman_1species_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-6-1.png)
 
 Finally, to illustrate that this point is a stable equlibrium point we will use the `modCRL` function from the FME package (Soetaert and Petzoldt 2010), to perturbate initial conditions and display corresponding trajectories. The modCRL function (type `?ModCRL`) needs a transfer function (`fCRL` below) that will do something with different values of the parameters. `modCRL` perturbates a subset of the parameters (as defined in `parRange`), call to the transfer function with perturbated parameters and stores the result. In this case, though, it is the transfer function `fCRL` that directly display the trajectory on the plot.
 
@@ -272,9 +272,9 @@ parRange <- matrix(nr = 3, nc = 2,
 CRL<-modCRL(fCRL,parRange=parRange,num = 20)
 ```
 
-![](2_Tilman_1species_files/figure-markdown_github/unnamed-chunk-7-1.png)
+![](2_Tilman_1species_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-7-1.png)
 
-Next we will see what happens when two species competes for the same resources : [the 2 species case](3_Tilman_2species.md)
+Next we will see what happens when two species competes for the same resources : [the 2 species case](3_Tilman_2species.pdf)
 
 References
 ==========

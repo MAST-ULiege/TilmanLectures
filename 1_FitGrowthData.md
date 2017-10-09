@@ -70,7 +70,7 @@ growthoutput=Growth(parms,seq(0,100,.5))
 lines(x=growthoutput$R,y=growthoutput$g, col="red")
 ```
 
-![](1_FitGrowthData_files/figure-markdown_github/unnamed-chunk-4-1.png)
+![](1_FitGrowthData_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-1.png)
 
 ### Calibration
 
@@ -106,8 +106,8 @@ summary(Fita)
     ## 
     ## Parameters:
     ##    Estimate Std. Error t value Pr(>|t|)    
-    ## k   4.64677    1.47469   3.151  0.00447 ** 
-    ## gM  0.50854    0.02011  25.290  < 2e-16 ***
+    ## k   4.64660    1.47467   3.151  0.00447 ** 
+    ## gM  0.50853    0.02011  25.291  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
@@ -123,7 +123,7 @@ coef(Fita)
 ```
 
     ##         k        gM 
-    ## 4.6467730 0.5085366
+    ## 4.6465969 0.5085345
 
 We can now check visually that the fitted parameters provides a better description of the data, by evaluating `Growth` on the same range of *R* but using the new parameters.
 
@@ -133,7 +133,7 @@ plot(x=datain$R,y=datain$g)
 lines(x=seq(0,100,.5),y=Growth(coef(Fita),seq(0,100,.5))$g, col="red")
 ```
 
-![](1_FitGrowthData_files/figure-markdown_github/unnamed-chunk-8-1.png)
+![](1_FitGrowthData_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-8-1.png)
 
 ### Sensitivity
 
@@ -168,7 +168,7 @@ summary(sF)
 plot(sF)
 ```
 
-![](1_FitGrowthData_files/figure-markdown_github/unnamed-chunk-9-1.png)
+![](1_FitGrowthData_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-9-1.png)
 
 A few question to reflect on :
 
@@ -208,14 +208,14 @@ MCa <- modMCMC(f = ModelCostb,
                wvar0 = 0.1,niter=5000)#,
 ```
 
-    ## number of accepted runs: 1825 out of 5000 (36.5%)
+    ## number of accepted runs: 1703 out of 5000 (34.06%)
 
 ``` r
 # This plots provides the selected parameter distributions
 pairs(MCa)
 ```
 
-![](1_FitGrowthData_files/figure-markdown_github/unnamed-chunk-10-1.png)
+![](1_FitGrowthData_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-10-1.png)
 
 Given a distribution of parameters, such as provided from the previous procedure, the function `sensRange` allows to assess the distribution of model outputs. In this case we can consider it illustrates the uncertainties of model estimates deriving from the uncertainity on the calibrated parameters.
 
@@ -228,7 +228,7 @@ plot(summary(sR))
 points(datain,col='red')
 ```
 
-![](1_FitGrowthData_files/figure-markdown_github/unnamed-chunk-11-1.png)
+![](1_FitGrowthData_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-11-1.png)
 
 References
 ==========
