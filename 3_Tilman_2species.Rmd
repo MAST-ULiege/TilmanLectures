@@ -2,7 +2,10 @@
 title: "Tilman's Resource Competition : 2 species 2 resources"
 author: "Arthur Capet"
 date: "June 15, 2017"
-output: github_document
+output: 
+#  github_document:
+  pdf_document:
+    toc: yes
 bibliography: biblio.bib
 urlcolor: blue
 ---
@@ -26,28 +29,40 @@ pars<-c(
   mN1  = .1     ,  # mortality N1
   mN2  = .15    ,  # mortality N2
   # param for growth
-  mu1 = .5      ,  # Max Growth 
+  # N1
+  mu1 = .5      ,  # Max Growth
+  
   limN1R1 = 40  ,  # Half-Saturation R1 for N1
   limN1R2 = 40  ,  # Half-Saturation R2 for N1
-  mu2 = .5      ,  # Max Growth 
-  limN2R1 = 10  ,  # Half-Saturation R1 for N2
-  limN2R2 = 45  ,  # Half-Saturation R2 for N2
+  gtype1  = 1   , #"essential"
   a11     = .6  ,  # Resource preference for R1, N1 [0-1]
+
+  # N2
+  mu2 = .5      ,  # Max Growth 
+  limN2R1 = 50  ,  # Half-Saturation R1 for N2
+  limN2R2 = 50  ,  # Half-Saturation R2 for N2
+  gtype2  = 3   ,  #"substitutive"
   a21     = .4  ,  # Resource preference for R1, N2 [0-1]
-  # Resources
+
+    # Resources
   g1  = 60      ,  # Supply R1 (max R1 if no consumption)
   g2  = 40      ,  # Supply R2 (max R2 if no consumption)
   gT  = 10      ,  # Relaxation time towards max Conc
+  gnoisefactor = 5, # Signal to noise ratio
+  
   # Initial conditions
   N1_0 = 10     ,  # Initial population N1
   N2_0 = 30     ,  # Initial population N2
   R1_0 = 50     ,  # Initial stock R1
   R2_0 = 50     ,  # Initial stock R2
   # Simulation
-  dt=.1
+  dt=.1, 
+  TOL=0.05
 )
 
-Growth<- function (R1,R2,Pp,hneed=F) {
+
+  
+Growth<- function (R1,R2,Pp,hneed=F, gtype=1){#'essential') {
   # Pp gives the species parameters 
   # * limR1
   # * limR2
@@ -57,7 +72,7 @@ Growth<- function (R1,R2,Pp,hneed=F) {
   with (as.list(Pp), {
     fR1 <- R1 / (R1 + limR1)
     fR2 <- R2 / (R2 + limR2)
-    
+    if (gtype==1){#'essential'){
     #############
     # Essential #
     #############
@@ -65,53 +80,53 @@ Growth<- function (R1,R2,Pp,hneed=F) {
     h1 <- a
     h2 <- (1-a)
     casestring<<-("Essential")
-
+    } else if  (gtype==2){#'interactiveEssential'){
     #########################
     # Interactive Essential #
     #########################
-     #f <- mu * fR1*fR2
-     #a<-.2
-     #h1 <- (a)
-     #h2 <- (1-a)
-     #casestring<<-("InteractiveEssential")
-    
+     f <- mu * fR1*fR2
+     a<-.2
+     h1 <- (a)
+     h2 <- (1-a)
+     casestring<<-("InteractiveEssential")
+    } else if  (gtype==3){#'substitutive'){
     ##########################
     # Perfectly Substitutive #
     ##########################
-    # f <- mu * (R1+R2)/ ( R1+R2  + limR1+ limR2 )
-    # h1 <- R1/(R1+R2)
-    # h2 <- R2/(R1+R2)
-    # casestring<<-("PerfectlySubstitutive")
-     
+    f <- mu * (R1+R2)/ ( R1+R2  + limR1+ limR2 )
+    h1 <- R1/(R1+R2)
+    h2 <- R2/(R1+R2)
+    casestring<<-("perfectlySubstitutive")
+    } else if  (gtype==4){#'complementary'){
     #################
     # Complementary #
     #################
-    # f <- mu * ((R1+R2+R1*R2/10)/ (R1+R2+R1*R2/10+limR1+limR2))
-    # h1 <- R1/(R1+R2)
-    # h2 <- R2/(R1+R2)
-
+    f <- mu * ((R1+R2+R1*R2/10)/ (R1+R2+R1*R2/10+limR1+limR2))
+    h1 <- R1/(R1+R2)
+    h2 <- R2/(R1+R2)
+    } else if  (gtype==5){#'antagonistic'){
     ################
     # Antagonistic #
     ################
-    # f <- mu * ((R1+R2-R1*R2/80)/ (R1+R2-R1*R2/80+limR1+limR2))
-    # h1 <- R1/(R1+R2)
-    # h2 <- R2/(R1+R2)
-    # casestring<<-("Antagonistic")
-
+    f <- mu * ((R1+R2-R1*R2/80)/ (R1+R2-R1*R2/80+limR1+limR2))
+    h1 <- R1/(R1+R2)
+    h2 <- R2/(R1+R2)
+    casestring<<-("Antagonistic")
+    } else if  (gtype==6){#'switching'){
     #############
     # Switching #
     #############
-    # f <- mu * pmax(R1,R2)/ (pmax(R1,R2)+   limR1+limR2 )
-    # 
-    # h1 <- R1/(R1+R2)
-    # h2 <- R2/(R1+R2)
-    #  if (R1>R2){
-    #  h1 <- 1
-    #  } else {
-    #    h1 <- 0
-    #  }
-    #  h2<-1-h1
-    
+    f <- mu * pmax(R1,R2)/ (pmax(R1,R2)+   limR1+limR2 )
+
+    h1 <- R1/(R1+R2)
+    h2 <- R2/(R1+R2)
+     if (R1>R2){
+     h1 <- 1
+     } else {
+       h1 <- 0
+     }
+     h2<-1-h1
+}
     if (hneed){
       return(c(f=f,h1=h1,h2=h2))
     } else {
@@ -120,6 +135,9 @@ Growth<- function (R1,R2,Pp,hneed=F) {
   })
 }
 
+```
+
+```{r}
 simpleg <- function (t, X, parms) {
   with (as.list(parms), {
     N1 <- X[1]
@@ -133,8 +151,7 @@ simpleg <- function (t, X, parms) {
             mu    = mu1     , 
             a     = a11     )
     
-    G1<-Growth(R1,R2,pN1,T)
-    
+    G1<-Growth(R1,R2,pN1,T,gtype=gtype1)
     f1<-G1["f"]
     h11<-G1["h1"]
     h12<-G1["h2"]
@@ -145,7 +162,7 @@ simpleg <- function (t, X, parms) {
             mu    = mu2     , 
             a     = a21     )
     
-    G<-Growth(R1,R2,pN2,T)
+    G<-Growth(R1,R2,pN2,T,gtype=gtype2)
     f2<-G["f"]
     h21<-G["h1"]
     h22<-G["h2"]
@@ -153,8 +170,12 @@ simpleg <- function (t, X, parms) {
     # Time derivatives
     dN1 <- N1 * (f1 - mN1)
     dN2 <- N2 * (f2 - mN2)
-    dR1 <-  (g1-R1)/gT - N1*f1*h11 - N2*f2*h21
-    dR2 <-  (g2-R2)/gT - N1*f1*h12 - N2*f2*h22
+    
+    supply1 = (g1-R1)/gT #+ runif(1,0,g1/gnoisefactor)
+    supply2 = (g2-R2)/gT #+ runif(1,0,g1/gnoisefactor)
+    
+    dR1 <-   supply1 - N1*f1*h11 - N2*f2*h21
+    dR2 <-  supply2 - N1*f1*h12 - N2*f2*h22
     
     # Return the time derivative
     return(list(c(dN1, dN2, dR1 , dR2)))
@@ -166,7 +187,6 @@ simpleg <- function (t, X, parms) {
 
 As before we start with a dynamic run
 ```{r}
-
 X0 <- with(as.list(pars),c(N1_0,N2_0,R1_0,R2_0))
 times <- seq(0, 200, by = pars["dt"]) # output wanted at these time intervals
 
@@ -178,10 +198,10 @@ plot(out)
 # Exploration of the resource space
 We'll use the steady simulation to illustrate competition, trajectories and equilibrium on the resource plane.
 First let us compute the growth values over hte resource plane for $N_1$ and $N_2$.
-```{r}
-outsteady<-steady(y = X0, time=c(0,Inf),func = simpleg, parms = pars, method= "runsteady")
-outs <- outsteady$y
-names(outs)<-c("N1","N2","R1","R2")
+```{r, space}
+#outsteady<-steady(y = X0, time=c(0,Inf),func = simpleg, parms = pars, method= "runsteady")
+#outs <- outsteady$y
+#names(outs)<-c("N1","N2","R1","R2")
 
 R1space <- seq(0,80, length=80)
 R2space <- seq(0,80, length=80)
@@ -197,13 +217,13 @@ with (as.list(pars), {
           a =a11 )
 })
   
-f1space <- outer(R1space,R2space,Growth,Pp=pN1)
-f2space <- outer(R1space,R2space,Growth,Pp=pN2)
+f1space <- outer(R1space,R2space,Growth,Pp=pN1,gtype=pars["gtype1"])
+f2space <- outer(R1space,R2space,Growth,Pp=pN2,gtype=pars["gtype2"])
 ```
 
 ## PLOT 1 : Trajectories
 
-```{r}
+```{r, trajectories}
 # ZNGI for N1
 contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),col="red",lty = "dotted", labels="ZNGI 1",
         lwd = 3,
@@ -221,7 +241,7 @@ points(out[1,"R1"],out[1,"R2"],pch = 19)
 
 # Equilibrium points and resource supply point
 points(out[nrow(out),"R1"],out[nrow(out),"R2"],col='red',pch = 19)
-points(outs["R1"],outs["R2"],col='red',cex=2.5)
+#points(outs["R1"],outs["R2"],col='red',cex=2.5)
 points(pars["g1"],pars["g2"],col='blue',cex=1.5,bg='blue',pch=21)
 
 # as before, function that display a trajectory for a given set of initial condition
@@ -243,13 +263,14 @@ parRange <- matrix(nr = 4, nc = 2, c(0.2, 0.2, 10,10 ,
 print(parRange)
   
 # the main call to perturbate parameter and display multiple trajectories
-CRL<-modCRL(fCRL,parRange=parRange,num = 20)
+CRL<-modCRL(fCRL,parRange=parRange,num = 5)
 ```
+
 ##     PLOT2 : perturbation on the supply point
 
 Instead of perturbating initial conditions, we now perturbate supply point value. 
 You'll see that the position of the supply point determines the position of the equilibrium point somewhere over a *ZNGI*
-```{r}
+```{r, supply perturbation}
 
 
   fCRL<-function(parinit){
@@ -307,7 +328,8 @@ if (TRUE) {
     N1final <- out[length(times),"N1"]
     N2final <- out[length(times),"N2"]
     
-    TOL=0.01
+    TOL=pars["TOL"]
+    
     if (N1final> TOL & N2final> TOL) {
     COL="blue"  # Cohabitation
     }
@@ -346,6 +368,66 @@ if (TRUE) {
 }
 
 ```
+
+
+# Exercice
+
+
+```{r, solution}
+fCRL<-function(parinit){
+    parsl <- pars
+    parsl[names(parinit)]<-parinit
+    out <- ode(y = X0, times = times, func = simpleg, parms = parsl,method="euler")
+    colnames(out) <- c("time","N1","N2","R1","R2")
+    return(out[nrow(out),])}
+
+g1grad   <- seq (0,80,length=50)
+g2grad   <- seq (80,0,length=50)
+parInput <- cbind(g1grad,g2grad) 
+colnames(parInput)<-c("g1","g2")
+
+CRL <- modCRL(fCRL,parInput=parInput,sensvar=c('N1','N2'))
+
+plot  (x=1:50, y=CRL$N1    , type = 'l'  , col= "red", ylab="Populations", xlab="Resource Gradient")
+lines (x=1:50, y=CRL$N2    , col= "blue")
+legend(1,50  , c('N1','N2'), col=c("red","blue"))
+```
+
+
+```{r}
+communityCases<-apply(CRL,1,function(x){
+  N1<-x["N1"]
+  N2<-x["N2"]
+  TOL<-.05
+   if (N1> TOL & N2> TOL) {
+    COL="blue"  # Cohabitation
+    }
+    if (N1 > TOL & N2 <= TOL) {
+      COL="red"  # only N1 survives
+    }
+    if (N1 <= TOL & N2> TOL) {
+      COL="green"  # only N2 survives
+    } 
+    if (N1 <= TOL & N2 <= TOL) {
+      COL="Black"  # No survival
+    } 
+  return(COL)
+})
+
+contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),col="red",lty = "dotted", labels="ZNGI 1",
+        lwd = 3,
+          vfont = c("sans serif", "plain"),
+          labcex=1.5,
+          xlab = "R1",
+          ylab="R2")
+
+contour(R1space ,R2space ,f2space,levels=as.vector(pars["mN2"]),col="red",lty = "dotted", labels="ZNGI 2",lwd = 3,vfont = c("sans serif", "plain"), labcex=1.5,add=T)
+ 
+points(x = CRL$g1, y = CRL$g2, col= communityCases,pch=19)
+
+```
+
+
 
 # References
 
