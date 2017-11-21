@@ -1,0 +1,55 @@
+---
+title: "Question for examination, 2017"
+author: "Arthur Capet"
+date: "November 21, 2017"
+output: pdf_document
+urlcolor: blue
+---
+
+We present the dataset [Exam2017.xls](Exam2017.xls), characterising the response of growth rate for two plankton species (N1 and N2) to the availability of two ressources (R1 and R2).
+
+The data file contains 4 sheets (use `read.xls` from package `gdata` to read .xls file, sheet by sheet): 
+The sheet **N1R1** contains the response of N1 growth to R1, etc ...
+
+It is considered that those ressources are **essentials**, and that all other ressources (e.g R2) were present in sufficient abundance when testing the response to a limiting resource (e.g R1).
+
+**Q1: Individual growth**
+
+Use the FME package to calibrate the logistic growth function $g=g_{max}.\frac{N}{N+K}$ for each pair of species/ressource.
+Present the 8 parameters obtained with their p<0.05 confidence intervals and display (for the pair N1,R1 only) the calibrated growth model together with the experimental data points. 
+
+**Q2: Competition**
+
+We consider a natural spatial gradient with different resource conditions.
+The extremities of this gradient are defined by the ressource supply points [R1 = 0 µM, R2 = 80 µM] and [R1 = 80 µM , R2 = 0 µM].
+Both species will be present at initial conditions, with an abundance of 50 ind./ml.
+We question the outcomes of species competition for ressource, given their growth characteristic, along this gradient.
+
+*Additional Parameters*: 
+
+Parameter                            |  Value
+-------------------------------------|------------
+Relaxation time for ressource supply |  15 days.
+R1 relative consumption for N1       |  0.4 
+R1 relative consumption for N2       |  0.6 
+N1 mortality                         |  0.1 ind./ml/d
+N2 mortality                         |  0.08 ind./ml/d
+Tolerance to assess competition issue|  0.02 ind./ml
+
+* Display on the resource plane, for 20 ressource points located along this gradient :
+    + the issue of resource competition (which species survives?).
+    + the corresponding equilibrium points. 
+
+* Display, on another plot, the abundance of N1 and N2 (y-axis) at equilibrium for different ressource supply points along the gradient of resource availability (x-axis).
+
+* Does the relative species abundance changes when the supply relax. time is modified ? Explain. 
+
+* Does the relative species abundance changes when the relative preference of a species is modified ? Explain.
+
+**BONUS: Sensitivity**
+
+If you could obtain additional sampling for the first calibration exercice, at wich range of concentration would you focus your sampling ? Why ? 
+
+**Presentation**: Present all results using the "slidy_presentation" option for RMarkdown files.
+
+

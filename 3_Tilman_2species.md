@@ -1,7 +1,16 @@
 Tilman's Resource Competition : 2 species 2 resources
 ================
 Arthur Capet
-June 15, 2017
+September, 2017
+
+-   [Parameters](#parameters)
+-   [Growth Function](#growth-function)
+-   [A first simulation](#a-first-simulation)
+-   [Exploration of the resource space](#exploration-of-the-resource-space)
+    -   [PLOT 1: Trajectories](#plot-1-trajectories)
+    -   [PLOT2: Perturbation on the supply point](#plot2-perturbation-on-the-supply-point)
+-   [Exercice](#exercice)
+-   [References](#references)
 
 This script allows to visualize the dynamics of two species depending competing for two ressources(Tilman 1982). You might want to have a look on the [course notes](https://www.overleaf.com/read/krhfddzjxnqc) before going any further.
 
@@ -10,50 +19,55 @@ library("deSolve")
 library("FME")
 ```
 
-Function and parameter definitions
-==================================
+Parameters
+==========
 
-Parameters for growth are now given for both species *N*<sub>1</sub> and *N*<sub>2</sub>. In order to be callable for both species, the function `Growth` now receives species-specifc parameter as an input argument ( in [the 1 species case](2_Tilman_1species.pdf), those parameters where "global", here they are "local").
+Parameters for growth are now given for both species *N*<sub>1</sub> and *N*<sub>2</sub>.
 
 ``` r
 pars<-c(
   # Populations
-  mN1  = .1     ,  # mortality N1
-  mN2  = .15    ,  # mortality N2
+  mN1  = .12    ,  # mortality N1                   - [ind./ml/d]
+  mN2  = .10    ,  # mortality N2                   - [ind./ml/d]
+  
   # param for growth
   # N1
-  mu1 = .5      ,  # Max Growth
-  
-  limN1R1 = 40  ,  # Half-Saturation R1 for N1
-  limN1R2 = 40  ,  # Half-Saturation R2 for N1
-  gtype1  = 1   , #"essential"
-  a11     = .6  ,  # Resource preference for R1, N1 [0-1]
+  mu1 = .4      ,  # Max Growth                     - [ind./ml/d] 
+  limN1R1 = 20  ,  # Half-Saturation R1 for N1      - [µM]
+  limN1R2 = 30  ,  # Half-Saturation R2 for N1      - [µM]
+  gtype1  = 1   ,  # "essential"
+  a11     = .5  ,  # Resource preference for R1, N1 - [0-1]
 
   # N2
-  mu2 = .5      ,  # Max Growth 
-  limN2R1 = 50  ,  # Half-Saturation R1 for N2
-  limN2R2 = 50  ,  # Half-Saturation R2 for N2
+  mu2 = .3      ,  # Max Growth                     - [ind./ml/d]  
+  limN2R1 = 50  ,  # Half-Saturation R1 for N2      - [µM]
+  limN2R2 = 50  ,  # Half-Saturation R2 for N2      - [µM]
   gtype2  = 3   ,  #"substitutive"
-  a21     = .4  ,  # Resource preference for R1, N2 [0-1]
+  a21     = .5  ,  # Resource preference for R1, N2 - [0-1]
 
-    # Resources
-  g1  = 60      ,  # Supply R1 (max R1 if no consumption)
-  g2  = 40      ,  # Supply R2 (max R2 if no consumption)
-  gT  = 10      ,  # Relaxation time towards max Conc
+  # Resources
+  g1  = 60      ,  # Supply R1 (max R1 if no cons.) - [µM]
+  g2  = 40      ,  # Supply R2 (max R2 if no cons.) - [µM]
+  gT  = 5      ,  # Relax. time towards max Conc   - [d]
   gnoisefactor = 5, # Signal to noise ratio
   
   # Initial conditions
-  N1_0 = 10     ,  # Initial population N1
-  N2_0 = 30     ,  # Initial population N2
-  R1_0 = 50     ,  # Initial stock R1
-  R2_0 = 50     ,  # Initial stock R2
+  N1_0 = 10     ,  # Initial population N1          - [ind./ml]
+  N2_0 = 30     ,  # Initial population N2          - [ind./ml]
+  R1_0 = 50     ,  # Initial stock R1               - [µM]
+  R2_0 = 50     ,  # Initial stock R2               - [µM]
   # Simulation
-  dt=.1, 
-  TOL=0.05
+  dt=.1         ,  # Time step                      - [d]
+  TOL=0.05         # Tolerance for competition      - [ind./ml]
 )
+```
 
+Growth Function
+===============
 
-  
+In order to be callable for both species, the function `Growth` now receives species-specifc parameter as an input argument ( in [the 1 species case](2_Tilman_1species.pdf), those parameters where "global", here they are "local").
+
+``` r
 Growth<- function (R1,R2,Pp,hneed=F, gtype=1){#'essential') {
   # Pp gives the species parameters 
   # * limR1
@@ -188,7 +202,7 @@ colnames(out)<-c("time","N1","N2","R1","R2")
 plot(out)
 ```
 
-![](3_Tilman_2species_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-1.png)
+![](3_Tilman_2species_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-5-1.png)
 
 Exploration of the resource space
 =================================
@@ -218,8 +232,8 @@ f1space <- outer(R1space,R2space,Growth,Pp=pN1,gtype=pars["gtype1"])
 f2space <- outer(R1space,R2space,Growth,Pp=pN2,gtype=pars["gtype2"])
 ```
 
-PLOT 1 : Trajectories
----------------------
+PLOT 1: Trajectories
+--------------------
 
 ``` r
 # ZNGI for N1
@@ -274,8 +288,8 @@ CRL<-modCRL(fCRL,parRange=parRange,num = 5)
 
 ![](3_Tilman_2species_files/figure-markdown_github-ascii_identifiers/trajectories-1.png)
 
-PLOT2 : perturbation on the supply point
-----------------------------------------
+PLOT2: Perturbation on the supply point
+---------------------------------------
 
 Instead of perturbating initial conditions, we now perturbate supply point value. You'll see that the position of the supply point determines the position of the equilibrium point somewhere over a *ZNGI*
 
@@ -298,7 +312,7 @@ Instead of perturbating initial conditions, we now perturbate supply point value
   }
   
   parRange <- matrix(nr = 2, nc = 2, c(0, 0, 80,80 ,
-                                       50,   50, 80,80 ),
+                                       50,50, 80,80 ),
                      dimnames = list(c("g1","g2"), c("min", "max")))
   parRange
 ```
@@ -380,10 +394,12 @@ if (TRUE) {
 }
 ```
 
-![](3_Tilman_2species_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-5-1.png)
+![](3_Tilman_2species_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-6-1.png)
 
 Exercice
 ========
+
+Display the species abundance at equilibrium and the outcome of competition along the resource supply gradients.
 
 ``` r
 fCRL<-function(parinit){
@@ -439,7 +455,7 @@ contour(R1space ,R2space ,f2space,levels=as.vector(pars["mN2"]),col="red",lty = 
 points(x = CRL$g1, y = CRL$g2, col= communityCases,pch=19)
 ```
 
-![](3_Tilman_2species_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-6-1.png)
+![](3_Tilman_2species_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-7-1.png)
 
 References
 ==========
