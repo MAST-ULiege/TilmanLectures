@@ -8,5 +8,10 @@ Those are practical sessions for the lecture : [OCEA0096-1](http://progcours.ulg
 
 Lecture's notes can be found [on overleaf](https://www.overleaf.com/read/krhfddzjxnqc)
 
-Hint : Download .Rmd files (and "G1R1.txt") and open them on your own local RStudio.
-It will allows to you run chunks of code one by one, to modify plots, parameters, ressource types, etc .. and to follow on with  your own code. 
+There are three type of files for each session (which are three version of the same content) : 
+* ".md" files are intended for visualization on github.
+* ".pdf" files are intended for download and local reading.
+* ".Rmd" files are intended for download and opening with Rstudio. This will allows you to modify the code inside the "R chunks". Add your own parts, test other paramters and options, etc ..
+
+In addition, the pdf [Exam2017.pdf](Exam2017.pdf) gives the list of questions for the examination of 2016-2017.
+It consists in a set of exercice very close to what is propose in the other file, based on the "dataset" [Exam2017.xls](Exam2017.xls)
