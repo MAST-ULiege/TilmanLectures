@@ -3,10 +3,11 @@ title: "Tilman's Resource Competition : 1 species 2 resources"
 author: "Arthur Capet"
 date: "June 15, 2017"
 output: 
-  pdf_document:
-    toc: yes
+#  pdf_document:
+
 #  slidy_presentation: 
-#  github_document:
+  github_document:
+      toc: yes
 bibliography: biblio.bib
 urlcolor: blue
 ---
@@ -350,7 +351,7 @@ CRL<-modCRL(fCRL,parRange=parRange,num = 20)
 ```
 # Next
 
-Next we will see what happens when two species competes for the same resources : [the 2 species case](3_Tilman_2species.pdf)
+Next we will see what happens when two species competes for the same resources : [the 2 species case](3_Tilman_2species.md)
 
 
 

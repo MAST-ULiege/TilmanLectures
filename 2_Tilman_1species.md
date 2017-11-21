@@ -3,6 +3,18 @@ Tilman's Resource Competition : 1 species 2 resources
 Arthur Capet
 June 15, 2017
 
+-   [Framework](#framework)
+-   [Parameters](#parameters)
+-   [The growth function](#the-growth-function)
+-   [Time Derivatives](#time-derivatives)
+-   [Dynamic simulation](#dynamic-simulation)
+-   [Steady-state solution](#steady-state-solution)
+-   [Growth on the resource plane](#growth-on-the-resource-plane)
+-   [Trajectories](#trajectories)
+-   [Perturbations](#perturbations)
+-   [Exercice :](#exercice)
+-   [References](#references)
+
 This script allows to visualize the dynamics of a single species depending on two ressources (Tilman 1982). You might want to have a look on the [lecture notes](https://www.overleaf.com/read/krhfddzjxnqc) before going any further.
 
 ``` r
@@ -343,7 +355,7 @@ CRL<-modCRL(fCRL,parRange=parRange,num = 20)
 
 ![](2_Tilman_1species_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-8-1.png) \# Next
 
-Next we will see what happens when two species competes for the same resources : [the 2 species case](3_Tilman_2species.pdf)
+Next we will see what happens when two species competes for the same resources : [the 2 species case](3_Tilman_2species.md)
 
 References
 ==========

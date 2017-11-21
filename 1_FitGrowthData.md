@@ -3,6 +3,15 @@ Model Calibration with the FME package
 Arthur Capet
 June 14, 2017
 
+-   [Foreword](#foreword)
+    -   [Objectives](#objectives)
+-   [Load Data](#load-data)
+-   [Build a growth model](#build-a-growth-model)
+-   [Calibration](#calibration)
+-   [Sensitivity](#sensitivity)
+-   [Distribution of parameters](#distribution-of-parameters)
+-   [References](#references)
+
 Foreword
 ========
 
@@ -103,11 +112,11 @@ ModelCosta <- function(p) {
 ModelCosta(parms)
 ```
 
-    ##  [1] -0.27036922 -0.17740577 -0.04354337 -0.09694207 -0.21919840
-    ##  [6] -0.21672902 -0.20208996 -0.26120461 -0.11882851 -0.21974509
-    ## [11] -0.17167727 -0.25928609 -0.22024623 -0.15232522 -0.09863905
-    ## [16] -0.22799059 -0.09900747 -0.10733768 -0.30968723 -0.24972277
-    ## [21] -0.25165009 -0.15599944 -0.07097069 -0.14136541 -0.14670261
+    ##  [1] -0.4612047 -0.2580135 -0.4281564 -0.4391865 -0.4332666 -0.4933549
+    ##  [7] -0.2070433 -0.4482894 -0.4343023 -0.4769833 -0.4704252 -0.4530495
+    ## [13] -0.3691216 -0.4733228 -0.3255556 -0.4431999 -0.3802238 -0.4439216
+    ## [19] -0.4846442 -0.3627637 -0.3676948 -0.4118085 -0.4299545 -0.4382192
+    ## [25] -0.2818159
 
 We can now use the function `modFit`, to find the set of parameters that minimize the residuals given by `ModelCosta`. Here, we selected the "Pseudo" search algorithm and imposed bounds for the parameters \[0 1000\] and \[0 1000\] (type ´?modFit´ for more Details).
 
@@ -132,24 +141,24 @@ summary(Fita)
     ## 
     ## Parameters:
     ##      Estimate Std. Error t value Pr(>|t|)    
-    ## k     4.64662    1.47467   3.151  0.00447 ** 
-    ## gmax  0.50854    0.02011  25.291  < 2e-16 ***
+    ## k    16.68207    3.39933   4.907 5.87e-05 ***
+    ## gmax  0.29843    0.01736  17.191 1.27e-14 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 0.04602 on 23 degrees of freedom
+    ## Residual standard error: 0.02401 on 23 degrees of freedom
     ## 
     ## Parameter correlation:
     ##           k   gmax
-    ## k    1.0000 0.8561
-    ## gmax 0.8561 1.0000
+    ## k    1.0000 0.9163
+    ## gmax 0.9163 1.0000
 
 ``` r
 coef(Fita)
 ```
 
-    ##         k      gmax 
-    ## 4.6466236 0.5085352
+    ##          k       gmax 
+    ## 16.6820692  0.2984296
 
 We can now check visually that the fitted parameters provides a better description of the data, by evaluating `Growth` on the same range of *R* but using the new parameters.
 
@@ -195,9 +204,9 @@ sF <- sensFun(f = Growth,  parms= coef(Fita),R=seq(.01,50,.1))
 summary(sF)
 ```
 
-    ##      value scale   L1    L2  Mean Min    Max   N
-    ## k     4.65  4.65 0.23 0.013 -0.23  -1 -0.085 500
-    ## gmax  0.51  0.51 1.00 0.045  1.00   1  1.000 500
+    ##      value scale   L1    L2  Mean Min   Max   N
+    ## k     16.7  16.7 0.46 0.022 -0.46  -1 -0.25 500
+    ## gmax   0.3   0.3 1.00 0.045  1.00   1  1.00 500
 
 ``` r
 plot(sF)
@@ -245,7 +254,7 @@ MCa <- modMCMC(f = ModelCostb,
                wvar0 = 0.1,niter=5000)#,
 ```
 
-    ## number of accepted runs: 1837 out of 5000 (36.74%)
+    ## number of accepted runs: 1716 out of 5000 (34.32%)
 
 ``` r
 # This plots provides the selected parameter distributions

@@ -3,12 +3,12 @@ title: "Model Calibration with the FME package"
 author: "Arthur Capet"
 date: "June 14, 2017"
 output: 
-  pdf_document:
-    toc: yes
+  #pdf_document:
+  #  toc: yes
   #slidy_presentation:
   #  toc: yes
-  #github_document:
-
+  github_document:
+    toc: yes
 bibliography: biblio.bib
 urlcolor: blue
 ---
