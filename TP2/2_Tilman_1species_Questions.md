@@ -1,39 +1,44 @@
----
-title: "Tilman's Resource Competition : 1 species 2 resources"
-author: "Arthur Capet"
-date: "June 15, 2017"
-output: 
-#  pdf_document:
-#    toc: yes
-#  slidy_presentation:
-  github_document:
-        toc: yes
-bibliography: biblio.bib
-urlcolor: blue
----
+Tilman's Resource Competition : 1 species 2 resources
+================
+Arthur Capet
+June 15, 2017
 
-This script allows to visualize the dynamics of a single species depending on two ressources [@TILMAN].
-You might want to have a look on the [lecture notes](https://www.overleaf.com/read/krhfddzjxnqc) before going any further.
+-   [Framework](#framework)
+-   [Parameters](#parameters)
+-   [The growth function](#the-growth-function)
+-   [Time Derivatives](#time-derivatives)
+-   [Dynamic simulation](#dynamic-simulation)
+-   [Steady-state solution](#steady-state-solution)
+-   [Growth on the resource plane](#growth-on-the-resource-plane)
+-   [Trajectories](#trajectories)
+-   [Perturbations](#perturbations)
+-   [Exercice](#exercice)
+-   [Next](#next)
+-   [References](#references)
 
-```{r, results='hide', message=FALSE}
+This script allows to visualize the dynamics of a single species depending on two ressources (Tilman 1982). You might want to have a look on the [lecture notes](https://www.overleaf.com/read/krhfddzjxnqc) before going any further.
+
+``` r
 library("deSolve") # For solving differential equations
 library("FME")     # Toolbox to play with model perturbation, sensitivity analysis, etc..
 ```
 
-# Framework
+Framework
+=========
 
 Our system is defined at any given time by 3 state variables :
 
-* $N_1$ (the population),
-* $R_1$ and $R_2$ (the ressources).
+-   *N*<sub>1</sub> (the population),
+-   *R*<sub>1</sub> and *R*<sub>2</sub> (the ressources).
 
-The growth of $N_1$ will depend on the availability of both resources in a specific way, as defined in the function `growth1`.
+The growth of *N*<sub>1</sub> will depend on the availability of both resources in a specific way, as defined in the function `growth1`.
 
-# Parameters
+Parameters
+==========
 
-All parameters that will be used later are given in a vector (those used in the growth function, but also those used for initial conditions, resource supply, etc .. ) 
+All parameters that will be used later are given in a vector (those used in the growth function, but also those used for initial conditions, resource supply, etc .. )
 
-```{r}
+``` r
 pars<-c(
   # 1 Population
   mN1  = .1   ,  # mortality N1
@@ -55,16 +60,17 @@ pars<-c(
 )
 ```
 
-# The growth function
+The growth function
+===================
 
-The main growth function `growth1` can take different form, representing different kind of resource (cf. lectures).
-Currently, we'll just switch to one or another form by commenting/uncommenting part of the code.
+The main growth function `growth1` can take different form, representing different kind of resource (cf. lectures). Currently, we'll just switch to one or another form by commenting/uncommenting part of the code.
 
-`growth1` requires three arguments : 
+`growth1` requires three arguments :
 
-* `R1` and `R2` are the two resources availabilities
-* `hneed` is a flag. If *`hneed=FALSE`*, the function returns only the growth rate. If *`hneed=TRUE`*, the function also returns `h1` and `h2`, the components of the resource consumption vector.
-```{r}
+-   `R1` and `R2` are the two resources availabilities
+-   `hneed` is a flag. If *`hneed=FALSE`*, the function returns only the growth rate. If *`hneed=TRUE`*, the function also returns `h1` and `h2`, the components of the resource consumption vector.
+
+``` r
 growth1<- function (R1,R2,hneed=FALSE) {
   with (as.list(pars), {
     f1R1 <- R1 / (R1 + kN1R1)
@@ -141,15 +147,14 @@ growth1<- function (R1,R2,hneed=FALSE) {
 
   })
 }
-
 ```
 
-# Time Derivatives
+Time Derivatives
+================
 
-The following function `simpleg` provides the time derivatives for the state variables, gathered in one vector `X`, in order to compute how the system evolves in time.
-Those time derivatives depend on the current state, and are controlled by the parameters and the form of the growth function.
+The following function `simpleg` provides the time derivatives for the state variables, gathered in one vector `X`, in order to compute how the system evolves in time. Those time derivatives depend on the current state, and are controlled by the parameters and the form of the growth function.
 
-```{r}
+``` r
 simpleg <- function (t, X, parms) {
   with (as.list(parms), {
     N1 <- X[1]
@@ -174,17 +179,16 @@ simpleg <- function (t, X, parms) {
 }
 ```
 
+Dynamic simulation
+==================
 
-# Dynamic simulation
+In the following, we
 
-In the following, we 
+-   define the initial conditions `X0`,
+-   define a number of time step, set a temporal framework
+-   run first a dynamic simulation, solving the problem in time, ie. looking at the evolution of the population and resources.
 
-* define the initial conditions `X0`,
-* define a number of time step, set a temporal framework
-* run first a dynamic simulation, solving the problem in time, ie. looking at the evolution of the population and resources.
-
-
-```{r dynamic}
+``` r
 X0 <- with(as.list(pars),c(N1_0,R1_0,R2_0))
 
 # time intervals at which we want the outputs
@@ -199,12 +203,16 @@ colnames(out)<-c("time","N1","R1","R2")
 plot(out)
 ```
 
-# Steady-state solution
+![](2_Tilman_1species_Questions_files/figure-markdown_github/dynamic-1.png)
 
-Next, we compute directly the steady-state solution, ie the value of state variables for which the time derivative are nul: *growth* compensate for *mortality*, and resource *supply* compensate for *consumption*. The system is balanced, at equilibrium. 
+Steady-state solution
+=====================
 
-The values correspond to the last values of the dynamic run, but they were computed faster, from theoritical considerations, rather than waiting for the system to reach equilibrium by itself. 
-```{r steady}
+Next, we compute directly the steady-state solution, ie the value of state variables for which the time derivative are nul: *growth* compensate for *mortality*, and resource *supply* compensate for *consumption*. The system is balanced, at equilibrium.
+
+The values correspond to the last values of the dynamic run, but they were computed faster, from theoritical considerations, rather than waiting for the system to reach equilibrium by itself.
+
+``` r
 # this provides the steady state solution
 outsteady<-steady(y = X0, time=c(0,Inf),func = simpleg, parms = pars, method= "runsteady")
 outs <- outsteady$y
@@ -212,15 +220,17 @@ names(outs)<-c("N1","R1","R2")
 print(outs)
 ```
 
-# Growth on the resource plane
+    ##         N1         R1         R2 
+    ## 106.531264   8.979158   4.489579
 
-Here, we want to explore how the equilibrium point (such as obtained above) depends on the growth function parameters and initial conditions. 
-The locus of different equilibirum points, in the resource place (with axis $R_1$ and $R_2$), is called the *zero net growth isoline*, or *ZNGI*.
+Growth on the resource plane
+============================
 
-First, we compute growth rates for all values of $R_1$ and $R_2$ and display it with colour.
-Second we highlight the location where growth rate equals mortality rate.
+Here, we want to explore how the equilibrium point (such as obtained above) depends on the growth function parameters and initial conditions. The locus of different equilibirum points, in the resource place (with axis *R*<sub>1</sub> and *R*<sub>2</sub>), is called the *zero net growth isoline*, or *ZNGI*.
 
-```{r}
+First, we compute growth rates for all values of *R*<sub>1</sub> and *R*<sub>2</sub> and display it with colour. Second we highlight the location where growth rate equals mortality rate.
+
+``` r
 # Defining the extent of the ressource space to explore
 R1space <- seq(0,80, length=800)
 R2space <- seq(0,80, length=800)
@@ -234,11 +244,14 @@ image(R1space ,R2space ,f1space,main="Iso-growth")
 contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),add=T,col="blue",lty = "dotted", labels="ZNGI",lwd=2)
 ```
 
-# Trajectories
+![](2_Tilman_1species_Questions_files/figure-markdown_github/unnamed-chunk-5-1.png)
 
-Here we will visualize the trajectory of the simulation we computed just above. 
+Trajectories
+============
 
-```{r}
+Here we will visualize the trajectory of the simulation we computed just above.
+
+``` r
 image(R1space ,R2space ,f1space,main="Iso-growth")
 contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),
         add=T,col="blue",lty = "dotted", labels="ZNGI",lwd=2)
@@ -255,14 +268,14 @@ points(outs["R1"],outs["R2"],col='red',cex=1.5)
 points(pars["g1"],pars["g2"],col='blue',cex=1.5,bg='blue',pch=21)
 ```
 
-# Perturbations
+![](2_Tilman_1species_Questions_files/figure-markdown_github/unnamed-chunk-6-1.png)
 
-Finally, to illustrate that this point is a stable equlibrium point we will use the `modCRL` function from the FME package [@SOETAERTFME], to perturbate initial conditions and display corresponding trajectories. 
-The modCRL function (type `?modCRL`) needs a transfer function (`fCRL` below) that will return something according to the parameters recieved in argument.
-The function `modCRL` generates perturbation of the parameters (within some range given in `parRange`), calls the transfer function for each parameter setand stores the result. 
-In the present case, it is the transfer function `fCRL` that directly display the trajectory on the plot.
+Perturbations
+=============
 
-```{r}
+Finally, to illustrate that this point is a stable equlibrium point we will use the `modCRL` function from the FME package (Soetaert and Petzoldt 2010), to perturbate initial conditions and display corresponding trajectories. The modCRL function (type `?modCRL`) needs a transfer function (`fCRL` below) that will return something according to the parameters recieved in argument. The function `modCRL` generates perturbation of the parameters (within some range given in `parRange`), calls the transfer function for each parameter setand stores the result. In the present case, it is the transfer function `fCRL` that directly display the trajectory on the plot.
+
+``` r
 # Just reproduce the same plot as above
 image(R1space ,R2space ,f1space,main="Iso-growth")
 contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),
@@ -291,37 +304,38 @@ parRange <- matrix(nr = 3, nc = 2,
 
 # calling fCRL for 20 set of parameters whitin the range parRange
 CRL<-modCRL(fCRL,parRange=parRange,num = 20)
-
-
 ```
 
-# Exercice 
+![](2_Tilman_1species_Questions_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
-The objective is to see how the supply of ressources determines the equilibrium points and the size of population at equilibirum.
-So, instead of perturbating the initial conditions, we'll perturbate the position of the supply point.
+Exercice
+========
 
-* Copy the last code chunk below
-* Which parameters should be perturbated ? -> modify `parRange` accordingly.
+The objective is to see how the supply of ressources determines the equilibrium points and the size of population at equilibirum. So, instead of perturbating the initial conditions, we'll perturbate the position of the supply point.
+
+-   Copy the last code chunk below
+-   Which parameters should be perturbated ? -&gt; modify `parRange` accordingly.
 
 Inside the function `fCRL`
 
-* Removes the line changing the initial condition. The `X0` global value will be used instead.
-* Copy the global parameter vector `pars` in a local perturbated parameter vector.
-* Replace the value of perturbated parameters by those received in argument
-* use this perturbated parameter vector instead of the global `pars` when computing the model solution.
+-   Removes the line changing the initial condition. The `X0` global value will be used instead.
+-   Copy the global parameter vector `pars` in a local perturbated parameter vector.
+-   Replace the value of perturbated parameters by those received in argument
+-   use this perturbated parameter vector instead of the global `pars` when computing the model solution.
 
-For the plot: 
+For the plot:
 
-* add a blue point for the perturbated supply point, give it a size that depends on the size of population at equilibirum (use `cex = "N_eq"/20`).
-* add a blue line between the supply point and the reached equilibrium
+-   add a blue point for the perturbated supply point, give it a size that depends on the size of population at equilibirum (use `cex = "N_eq"/20`).
+-   add a blue line between the supply point and the reached equilibrium
 
-
-
-
-# Next
+Next
+====
 
 Next we will see what happens when two species competes for the same resources : [the 2 species case](3_Tilman_2species.pdf)
 
+References
+==========
 
+Soetaert, Karline, and Thomas Petzoldt. 2010. “Inverse modelling, sensitivity and monte carlo analysis in R using package FME.” *Journal of Statistical Software* 33 (3): 1–28.
 
-# References
+Tilman, David. 1982. *Resource Competition and Community Structure*. Princeton university press.
