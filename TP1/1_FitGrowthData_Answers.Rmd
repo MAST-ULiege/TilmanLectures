@@ -5,10 +5,10 @@ date: "June 14, 2017"
 output: 
   #pdf_document:
   #  toc: yes
-  #slidy_presentation:
-  #  toc: yes
-  github_document:
+  slidy_presentation:
     toc: yes
+  #github_document:
+  #  toc: yes
 bibliography: biblio.bib
 urlcolor: blue
 ---
@@ -129,6 +129,7 @@ Fita <- modFit(f = ModelCosta,
 ```{r}
 # What is the value of the fitted parameters, and the standard error on those parameters ? 
 summary(Fita)
+
 # How to get directly the best parameters ? 
 coef(Fita)
 ```
@@ -173,7 +174,8 @@ Try `?sensFun` to identify the arguments required by `sensFun` (*hint* : in our 
 # Store the ouput of `sensFun` in `SF`
 sF <- sensFun(f = Growth,  parms= coef(Fita),R=seq(.01,50,.1))
 # use summary , and plot to visulaize the sensitivity.
-summary(sF)
+summaryyy<- summary(sF)
+print(summaryyy)
 plot(sF)
 ```
 

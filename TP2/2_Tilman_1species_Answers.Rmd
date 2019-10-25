@@ -320,8 +320,10 @@ contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),
 
 # define the function to be used by modCRL  
 fCRL<-function(parloc){
+  print(' 1. parloc: ')
+  print(parloc)
     perturbpars<-pars
-    perturbpars[which(names(pars)%in%names(parloc))]<-parloc
+    perturbpars[names(parloc)]<-parloc
     out<- ode(y = X0, times = times, func = simpleg, parms = perturbpars,method="euler")
     colnames(out)<-c("time","N1","R1","R2")
     
