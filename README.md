@@ -2,11 +2,11 @@
 
 Those are practical sessions for the lecture : [OCEA0096-1](http://progcours.ulg.ac.be/cocoon/cours/OCEA0096-1.html "Uliège lecture references") 	Modélisation des écosystèmes et des cycles biogéochimiques, given at Liège University. 
 
-1. Model calibration with FME : [Session 1 ](1_FitGrowthData.md)
-2. Tilman's Ressource Competition Theory, Part 1 : Ressources  [Session 2 ](2_Tilman_1species.md)
-3. Tilman's Ressource Competition Theory, Part 2 : Competitions  [Session 3 ](3_Tilman_2species.md)
+1. Model calibration with FME : [Session 1 ](TP1/1_FitGrowthData_Questions.md)
+2. Tilman's Ressource Competition Theory, Part 1 : Ressources  [Session 2 ](TP2/2_Tilman_1species_Questions.md)
+3. Tilman's Ressource Competition Theory, Part 2 : Competitions  [Session 3 ](TP3/3_Tilman_2species_Questions.md)
 
-Lecture's notes can be found [on overleaf](https://www.overleaf.com/read/krhfddzjxnqc)
+Lecture's notes can be found [here](main.pdf)
 
 There are three type of files for each session (which are three version of the same content) : 
 * ".md" files are intended for visualization on github.
