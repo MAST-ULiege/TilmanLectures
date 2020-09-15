@@ -2,7 +2,12 @@
 title: "Tilman's Resource Competition : 2 species 2 resources"
 author: "Arthur Capet"
 date: "June 15, 2017"
-output: github_document
+output: 
+#  pdf_document:
+#    toc: yes
+#  slidy_presentation:
+  github_document:
+        toc: yes
 bibliography: biblio.bib
 urlcolor: blue
 ---
@@ -10,9 +15,9 @@ urlcolor: blue
 This script allows to visualize the dynamics of two species depending competing for two ressources[@TILMAN].
 You might want to have a look on the [course notes](https://www.overleaf.com/read/krhfddzjxnqc) before going any further.
 
-```{r,results='hide', message=FALSE}
-library("deSolve")
-library("FME")
+```{r, results='hide', message=FALSE}
+library("deSolve") # For solving differential equations
+library("FME")     # Toolbox to play with model perturbation, sensitivity analysis, etc..
 ```
   
 # Function and parameter definitions
@@ -27,8 +32,8 @@ pars<-c(
   mN2  = .15    ,  # mortality N2
   # param for growth
   mu1 = .5      ,  # Max Growth 
-  limN1R1 = 40  ,  # Half-Saturation R1 for N1
-  limN1R2 = 40  ,  # Half-Saturation R2 for N1
+  limN1R1 = 60  ,  # Half-Saturation R1 for N1
+  limN1R2 = 10  ,  # Half-Saturation R2 for N1
   mu2 = .5      ,  # Max Growth 
   limN2R1 = 10  ,  # Half-Saturation R1 for N2
   limN2R2 = 45  ,  # Half-Saturation R2 for N2
@@ -37,8 +42,8 @@ pars<-c(
   # Resources
   g1  = 60      ,  # Supply R1 (max R1 if no consumption)
   g2  = 40      ,  # Supply R2 (max R2 if no consumption)
-  gT  = 10      ,  # Relaxation time towards max Conc
-  gnoisefactor = 5, # Signal to noise ratio
+  gT  = 3      ,  # Relaxation time towards max Conc
+  noise = 3, # Signal to noise ratio
   
   # Initial conditions
   N1_0 = 10     ,  # Initial population N1
@@ -46,8 +51,12 @@ pars<-c(
   R1_0 = 50     ,  # Initial stock R1
   R2_0 = 50     ,  # Initial stock R2
   # Simulation
+  duration = 300,
   dt=.1
 )
+  # Ressource type
+  #ftype="Essential"
+  ftype="InteractiveEssential"
 
 Growth<- function (R1,R2,Pp,hneed=F) {
   # Pp gives the species parameters 
@@ -60,46 +69,57 @@ Growth<- function (R1,R2,Pp,hneed=F) {
     fR1 <- R1 / (R1 + limR1)
     fR2 <- R2 / (R2 + limR2)
     
+    if (ftype %in% c("Essential",
+                      "InteractiveEssential",
+                      "PerfectlySubstitutive",
+                      "Complementary",
+                      "Antagonistic") ){
+    }else{
+      print(' F type unknown, imposing Essential type' )
+             ftype <- "Essential"                 
+                      }
     #############
     # Essential #
     #############
+    if (ftype=="Essential"){
     f <- mu * pmin(fR1,fR2)
     h1 <- a
     h2 <- (1-a)
-    casestring<<-("Essential")
-
+    }
     #########################
     # Interactive Essential #
     #########################
-     #f <- mu * fR1*fR2
-     #a<-.2
-     #h1 <- (a)
-     #h2 <- (1-a)
-     #casestring<<-("InteractiveEssential")
-    
+        if (ftype=="InteractiveEssential"){
+    f <- mu * fR1*fR2
+    a<-.2
+    h1 <- (a)
+    h2 <- (1-a)
+    }
     ##########################
     # Perfectly Substitutive #
     ##########################
-    # f <- mu * (R1+R2)/ ( R1+R2  + limR1+ limR2 )
-    # h1 <- R1/(R1+R2)
-    # h2 <- R2/(R1+R2)
-    # casestring<<-("PerfectlySubstitutive")
+        if (ftype=="PerfectlySubstitutive"){
+    f <- mu * (R1+R2)/ ( R1+R2  + limR1+ limR2 )
+    h1 <- R1/(R1+R2)
+    h2 <- R2/(R1+R2)
+        }
      
     #################
     # Complementary #
     #################
-    # f <- mu * ((R1+R2+R1*R2/10)/ (R1+R2+R1*R2/10+limR1+limR2))
-    # h1 <- R1/(R1+R2)
-    # h2 <- R2/(R1+R2)
-
+    if (ftype=="Complementary"){
+     f <- mu * ((R1+R2+R1*R2/10)/ (R1+R2+R1*R2/10+limR1+limR2))
+     h1 <- R1/(R1+R2)
+     h2 <- R2/(R1+R2)
+    }
     ################
     # Antagonistic #
     ################
-    # f <- mu * ((R1+R2-R1*R2/80)/ (R1+R2-R1*R2/80+limR1+limR2))
-    # h1 <- R1/(R1+R2)
-    # h2 <- R2/(R1+R2)
-    # casestring<<-("Antagonistic")
-
+    if (ftype=="Antagonistic"){
+     f <- mu * ((R1+R2-R1*R2/80)/ (R1+R2-R1*R2/80+limR1+limR2))
+     h1 <- R1/(R1+R2)
+     h2 <- R2/(R1+R2)
+     }
     #############
     # Switching #
     #############
@@ -156,11 +176,11 @@ simpleg <- function (t, X, parms) {
     dN1 <- N1 * (f1 - mN1)
     dN2 <- N2 * (f2 - mN2)
     
-    supply1 = (g1-R1)/gT + runif(1,0,g1/gnoisefactor)
-    supply2 = (g2-R2)/gT + runif(1,0,g1/gnoisefactor)
-    
+    supply1 = (g1+ runif(1,-noise,noise)  -R1)/gT 
+    supply2 = (g2+ runif(1,-noise,noise)  -R2)/gT 
+
     dR1 <-   supply1 - N1*f1*h11 - N2*f2*h21
-    dR2 <-  supply2 - N1*f1*h12 - N2*f2*h22
+    dR2 <-   supply2 - N1*f1*h12 - N2*f2*h22
     
     # Return the time derivative
     return(list(c(dN1, dN2, dR1 , dR2)))
@@ -174,7 +194,7 @@ As before we start with a dynamic run
 ```{r}
 
 X0 <- with(as.list(pars),c(N1_0,N2_0,R1_0,R2_0))
-times <- seq(0, 200, by = pars["dt"]) # output wanted at these time intervals
+times <- seq(0, pars["duration"], by = pars["dt"]) # output wanted at these time intervals
 
 out <- ode(y = X0, times = times, func = simpleg, parms = pars,method = "euler")
 colnames(out)<-c("time","N1","N2","R1","R2")
@@ -185,10 +205,6 @@ plot(out)
 We'll use the steady simulation to illustrate competition, trajectories and equilibrium on the resource plane.
 First let us compute the growth values over hte resource plane for $N_1$ and $N_2$.
 ```{r, space}
-#outsteady<-steady(y = X0, time=c(0,Inf),func = simpleg, parms = pars, method= "runsteady")
-#outs <- outsteady$y
-#names(outs)<-c("N1","N2","R1","R2")
-
 R1space <- seq(0,80, length=80)
 R2space <- seq(0,80, length=80)
 
@@ -227,7 +243,6 @@ points(out[1,"R1"],out[1,"R2"],pch = 19)
 
 # Equilibrium points and resource supply point
 points(out[nrow(out),"R1"],out[nrow(out),"R2"],col='red',pch = 19)
-#points(outs["R1"],outs["R2"],col='red',cex=2.5)
 points(pars["g1"],pars["g2"],col='blue',cex=1.5,bg='blue',pch=21)
 
 # as before, function that display a trajectory for a given set of initial condition
@@ -297,7 +312,8 @@ You'll see that the position of the supply point determines the position of the 
 
 Finally, we will plot the supply point with a certain color, according to the results of competition at equilibrium: Which species survives? Is cohabitation possible ? 
 
-```{r}
+```{r, fig.height=8, fig.width=8}
+library(plotrix)
 
 if (TRUE) {
   
@@ -314,7 +330,7 @@ if (TRUE) {
     N1final <- out[length(times),"N1"]
     N2final <- out[length(times),"N2"]
     
-    TOL=0.1
+    TOL=0.01
     if (N1final> TOL & N2final> TOL) {
     COL="blue"  # Cohabitation
     }
@@ -329,6 +345,7 @@ if (TRUE) {
     } 
  
     points(parsl["g1"],parsl["g2"],col=COL,cex=1.5,bg=COL,pch=21)
+    draw.circle(x = parsl["g1"],y = parsl["g2"], radius =parsl["noise"], border=COL,col=NA)
     lines(c(parsl["g1"],out[length(times),"R1"]),c(parsl["g2"],out[length(times),"R2"]) , lty=2 )
     points(out[1,"R1"],out[1,"R2"],pch = 19)
     points(out[nrow(out),"R1"],out[nrow(out),"R2"],col=COL,pch = 19)
@@ -354,6 +371,23 @@ if (TRUE) {
 
 ```
 
+```{r, fig.height=8, fig.width=8}
+  parRange <- matrix(nr = 2, nc = 2, c(0, 0, 80,80 ,
+                                       50,   50, 80,80 ),
+                     dimnames = list(c("g1","g2"), c("min", "max")))
+  parRange
+  
+  contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),col="red",lty = "dotted", labels="ZNGI 1",
+          lwd = 3,
+          vfont = c("sans serif", "plain"),
+          labcex=1.5,
+          xlab = "R1",
+          ylab="R2")
+  contour(R1space ,R2space ,f2space,levels=as.vector(pars["mN2"]),col="red",lty = "dotted", labels="ZNGI 2",lwd = 3,vfont = c("sans serif", "plain"), labcex=1.5,add=T)
+  
+  pars['noise']<-10
+  CRL<-modCRL(fCRL,parRange=parRange,num = 50)
+```
 
 # Exercice
 

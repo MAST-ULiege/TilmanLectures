@@ -5,10 +5,10 @@ date: "June 14, 2017"
 output: 
   #pdf_document:
   #  toc: yes
-  slidy_presentation:
-    toc: yes
-  #github_document:
+  #slidy_presentation:
   #  toc: yes
+  github_document:
+    toc: yes
 bibliography: biblio.bib
 urlcolor: blue
 ---

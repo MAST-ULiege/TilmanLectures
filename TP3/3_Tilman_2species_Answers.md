@@ -50,6 +50,8 @@ pars<-c(
   g1  = 60      ,  # Supply R1 (max R1 if no consumption)
   g2  = 40      ,  # Supply R2 (max R2 if no consumption)
   gT  = 3      ,  # Relaxation time towards max Conc
+  noise = 3, # Signal to noise ratio
+  
   # Initial conditions
   N1_0 = 10     ,  # Initial population N1
   N2_0 = 30     ,  # Initial population N2
@@ -180,8 +182,12 @@ simpleg <- function (t, X, parms) {
     # Time derivatives
     dN1 <- N1 * (f1 - mN1)
     dN2 <- N2 * (f2 - mN2)
-    dR1 <-  (g1-R1)/gT - N1*f1*h11 - N2*f2*h21
-    dR2 <-  (g2-R2)/gT - N1*f1*h12 - N2*f2*h22
+    
+    supply1 = (g1+ runif(1,-noise,noise)  -R1)/gT 
+    supply2 = (g2+ runif(1,-noise,noise)  -R2)/gT 
+
+    dR1 <-   supply1 - N1*f1*h11 - N2*f2*h21
+    dR2 <-   supply2 - N1*f1*h12 - N2*f2*h22
     
     # Return the time derivative
     return(list(c(dN1, dN2, dR1 , dR2)))
@@ -202,7 +208,7 @@ colnames(out)<-c("time","N1","N2","R1","R2")
 plot(out)
 ```
 
-![](3_Tilman_2species_Questions_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](3_Tilman_2species_Answers_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 # Exploration of the resource space
 
@@ -281,7 +287,7 @@ print(parRange)
 CRL<-modCRL(fCRL,parRange=parRange,num = 20)
 ```
 
-![](3_Tilman_2species_Questions_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](3_Tilman_2species_Answers_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 ## PLOT2 : perturbation on the supply point
 
@@ -330,7 +336,7 @@ the position of the equilibrium point somewhere over a *ZNGI*
   CRL<-modCRL(fCRL,parRange=parRange,num = 20)
 ```
 
-![](3_Tilman_2species_Questions_files/figure-gfm/supply%20perturbation-1.png)<!-- -->
+![](3_Tilman_2species_Answers_files/figure-gfm/supply%20perturbation-1.png)<!-- -->
 \#\# PLOT3: perturbation on the supply point - Cohabitation ?
 
 Finally, we will plot the supply point with a certain color, according
@@ -338,6 +344,8 @@ to the results of competition at equilibrium: Which species survives? Is
 cohabitation possible ?
 
 ``` r
+library(plotrix)
+
 if (TRUE) {
   
   fCRL<-function(parinit){
@@ -368,6 +376,7 @@ if (TRUE) {
     } 
  
     points(parsl["g1"],parsl["g2"],col=COL,cex=1.5,bg=COL,pch=21)
+    draw.circle(x = parsl["g1"],y = parsl["g2"], radius =parsl["noise"], border=COL,col=NA)
     lines(c(parsl["g1"],out[length(times),"R1"]),c(parsl["g2"],out[length(times),"R2"]) , lty=2 )
     points(out[1,"R1"],out[1,"R2"],pch = 19)
     points(out[nrow(out),"R1"],out[nrow(out),"R2"],col=COL,pch = 19)
@@ -392,7 +401,33 @@ if (TRUE) {
 }
 ```
 
-![](3_Tilman_2species_Questions_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](3_Tilman_2species_Answers_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+``` r
+  parRange <- matrix(nr = 2, nc = 2, c(0, 0, 80,80 ,
+                                       50,   50, 80,80 ),
+                     dimnames = list(c("g1","g2"), c("min", "max")))
+  parRange
+```
+
+    ##    min max
+    ## g1   0  80
+    ## g2   0  80
+
+``` r
+  contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),col="red",lty = "dotted", labels="ZNGI 1",
+          lwd = 3,
+          vfont = c("sans serif", "plain"),
+          labcex=1.5,
+          xlab = "R1",
+          ylab="R2")
+  contour(R1space ,R2space ,f2space,levels=as.vector(pars["mN2"]),col="red",lty = "dotted", labels="ZNGI 2",lwd = 3,vfont = c("sans serif", "plain"), labcex=1.5,add=T)
+  
+  pars['noise']<-10
+  CRL<-modCRL(fCRL,parRange=parRange,num = 50)
+```
+
+![](3_Tilman_2species_Answers_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 # Exercice
 

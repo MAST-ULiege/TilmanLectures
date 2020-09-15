@@ -27,7 +27,7 @@ Our system is defined at any given time by 3 state variables :
 * $N_1$ (the population),
 * $R_1$ and $R_2$ (the ressources).
 
-The growth of $N_1$ will depend on the availability of both resources in a specific way, as defined in the function `growth1`.
+The growth of $N_1$ will depend on the availability of both resources in a specific way, as defined in the function `Growth`.
 
 # Parameters
 
@@ -36,107 +36,120 @@ All parameters that will be used later are given in a vector (those used in the 
 ```{r}
 pars<-c(
   # 1 Population
-  mN1  = .1   ,  # mortality N1
+  mN1  = .1    ,  # mortality N1
   ##   Params for growth
-  gmax1 = .5     ,  # Max Growth 
-  kN1R1 = 30 ,  # Half-Saturation R1
-  kN1R2 = 40 ,  # Half-Saturation R2
+  mu1 = .5     ,  # Max Growth 
+  limN1R1 = 30 ,  # Half-Saturation R1
+  limN1R2 = 40 ,  # Half-Saturation R2
+  a11     = .6 ,  # Resource preference for R1, by N1 [0-1]
   # Resources supply
-  g1  = 80     ,  # Supply R1 (max R1)
+  g1  = 10     ,  # Supply R1 (max R1)
   g2  = 40     ,  # Supply R2 (max R2)
   gT  = 10     ,  # Relaxation time towards max Conc
   # Initial conditions
   N1_0 = 10    ,  # Initial population N1
-  R1_0 = 50    ,  # Initial stock R1
-  R2_0 = 50    ,  # Initial stock R2
+  R1_0 = 30    ,  # Initial stock R1
+  R2_0 = 60    ,  # Initial stock R2
   # Simulation
   duration = 100,
   dt=.1
 )
+  # Ressource type
+  #ftype="Essential"
+  ftype="InteractiveEssential"
+
 ```
 
 # The growth function
 
-The main growth function `growth1` can take different form, representing different kind of resource (cf. lectures).
+The main growth function `Growth` can take different form, representing different kind of resource (cf. lectures).
 Currently, we'll just switch to one or another form by commenting/uncommenting part of the code.
 
-`growth1` requires three arguments : 
+`Growth` requires three arguments : 
 
 * `R1` and `R2` are the two resources availabilities
 * `hneed` is a flag. If *`hneed=FALSE`*, the function returns only the growth rate. If *`hneed=TRUE`*, the function also returns `h1` and `h2`, the components of the resource consumption vector.
 ```{r}
-growth1<- function (R1,R2,hneed=FALSE) {
-  with (as.list(pars), {
-    f1R1 <- R1 / (R1 + kN1R1)
-    f1R2 <- R2 / (R2 + kN1R2)
+Growth<- function (R1,R2,Pp, hneed=F) {
+  # Pp gives the species parameters 
+  # * limR1
+  # * limR2
+  # * mu 
+  # The 'with' function executes the code in {} with elements of the list (first argument)
+  #    included as part of the local environment
+  with (as.list(Pp), {
+    fR1 <- R1 / (R1 + limR1)
+    fR2 <- R2 / (R2 + limR2)
     
-     #############
-     # Essential #
-     # Liebig's law of the minimum. If one ressource is lacking
-     #############
-     # 
-     # f1 <- gmax1 * pmin(f1R1,f1R2)
-     # a<-.2
-     # h1 <- a
-     # h2 <- (1-a)
-     # 
-     # casestring<<-("Essential")
-
-     #########################
-     # Interactive Essential #
-     #########################
-    
-     # f1 <- gmax1 * f1R1*f1R2
-     # a<-.2
-     # h1 <- (a)
-     # h2 <- (1-a)
-
-     #casestring<<-("InteractiveEssential")
-
-     ##########################
-     # Perfectly Substitutive
-     ##########################
+    if (ftype %in% c("Essential",
+                      "InteractiveEssential",
+                      "PerfectlySubstitutive",
+                      "Complementary",
+                      "Antagonistic") ){
+    }else{
+      print(' F type unknown, imposing Essential type' )
+             ftype <- "Essential"                 
+                      }
+    #############
+    # Essential #
+    #############
+    if (ftype=="Essential"){
+    f <- mu * pmin(fR1,fR2)
+    h1 <- a
+    h2 <- (1-a)
+    }
+    #########################
+    # Interactive Essential #
+    #########################
+        if (ftype=="InteractiveEssential"){
+    f <- mu * fR1*fR2
+    a<-.2
+    h1 <- (a)
+    h2 <- (1-a)
+    }
+    ##########################
+    # Perfectly Substitutive #
+    ##########################
+        if (ftype=="PerfectlySubstitutive"){
+    f <- mu * (R1+R2)/ ( R1+R2  + limR1+ limR2 )
+    h1 <- R1/(R1+R2)
+    h2 <- R2/(R1+R2)
+        }
      
-     # f1 <- gmax1 * (R1+R2)/ ( R1+R2  + kN1R1+ kN1R2 )
-     # h1 <- R1/(R1+R2)
-     # h2 <- R2/(R1+R2)
-     # casestring<<-("PerfectlySubstitutive")
-     
-     ##################
-     # Complementary #
-     #################
-     
-     f1 <- gmax1 * ((R1+R2+R1*R2/10)/ (R1+R2+R1*R2/10+kN1R1+kN1R2))
+    #################
+    # Complementary #
+    #################
+    if (ftype=="Complementary"){
+     f <- mu * ((R1+R2+R1*R2/10)/ (R1+R2+R1*R2/10+limR1+limR2))
      h1 <- R1/(R1+R2)
      h2 <- R2/(R1+R2)
-
-     ##########################
-     # Antagonistic
-     ##########################
-     # f1 <- gmax1 * ((R1+R2-R1*R2/80)/ (R1+R2-R1*R2/80+kN1R1+kN1R2))
-     # h1 <- R1/(R1+R2)
-     # h2 <- R2/(R1+R2)
-     # casestring<<-("Antagonistic")
-
-     ##########################
-     # Switching
-     ##########################
-
-     # f1 <- gmax1 * pmax(R1,R2)/ (pmax(R1,R2)+   kN1R1+kN1R2 )
-     # 
-     # h1 <- R1/(R1+R2)
-     # h2 <- R2/(R1+R2)
-     #  if (R1>R2){
-     #  h1 <- 1
-     #  } else {
-     #    h1 <- 0
-     #  }
-     #  h2<-1-h1
-     
+    }
+    ################
+    # Antagonistic #
+    ################
+    if (ftype=="Antagonistic"){
+     f <- mu * ((R1+R2-R1*R2/80)/ (R1+R2-R1*R2/80+limR1+limR2))
+     h1 <- R1/(R1+R2)
+     h2 <- R2/(R1+R2)
+     }
+    #############
+    # Switching #
+    #############
+    # f <- mu * pmax(R1,R2)/ (pmax(R1,R2)+   limR1+limR2 )
+    # 
+    # h1 <- R1/(R1+R2)
+    # h2 <- R2/(R1+R2)
+    #  if (R1>R2){
+    #  h1 <- 1
+    #  } else {
+    #    h1 <- 0
+    #  }
+    #  h2<-1-h1
+    
     if (hneed){
-      return(c(f1=f1,h1=h1,h2=h2))
+      return(c(f=f,h1=h1,h2=h2))
     } else {
-      return(f1)
+      return(f)
     }
 
   })
@@ -156,11 +169,18 @@ simpleg <- function (t, X, parms) {
     R1 <- X[2]
     R2 <- X[3]
     
+        # Return the growth rate and consumption vectors for N1
+    pN1<-c( limR1 = limN1R1 ,
+            limR2 = limN1R2 ,
+            mu    = mu1     , 
+            a     = a11     )
+    
+    
     # Get the growth rate.
     # Because the third argument is "True", G is a vector with three named components.
-    # (see definition of growth1)
-    G<-growth1(R1,R2,hneed=TRUE)
-    f1<-G["f1"]
+    # (see definition of Growth)
+    G<-Growth(R1,R2,pN1,T)
+    f1<-G["f"]
     h1<-G["h1"]
     h2<-G["h2"]
     
@@ -203,7 +223,7 @@ plot(out)
 
 Next, we compute directly the steady-state solution, ie the value of state variables for which the time derivative are nul: *growth* compensate for *mortality*, and resource *supply* compensate for *consumption*. The system is balanced, at equilibrium. 
 
-The values correspond to the last values of the dynamic run, but they were computed faster, from theoritical considerations, rather than waiting for the system to reach equilibrium by itself. 
+The values correspond to the last values of the dynamic run, but they were computed faster, from theoretical considerations, rather than waiting for the system to reach equilibrium by itself. 
 ```{r steady}
 # this provides the steady state solution
 outsteady<-steady(y = X0, time=c(0,Inf),func = simpleg, parms = pars, method= "runsteady")
@@ -222,11 +242,17 @@ Second we highlight the location where growth rate equals mortality rate.
 
 ```{r}
 # Defining the extent of the ressource space to explore
-R1space <- seq(0,80, length=800)
-R2space <- seq(0,80, length=800)
+R1space <- seq(0,80, length=80)
+R2space <- seq(0,80, length=80)
 
+with (as.list(pars), {
+  pN1 <<-c( limR1 = limN1R1 ,
+          limR2 = limN1R2 ,
+          mu    = mu1,
+          a =a11  )})
+  
 # this function evaluate growth 1 for every value of (R1space,R2space)
-f1space <- outer(R1space,R2space,growth1)
+f1space <- outer(R1space,R2space,Growth,pN1)#, ftype="InteractiveEssential")
 # First we plot the contour
 image(R1space ,R2space ,f1space,main="Iso-growth")
 
