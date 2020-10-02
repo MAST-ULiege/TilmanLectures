@@ -15,6 +15,9 @@ urlcolor: blue
 This script allows to visualize the dynamics of two species depending competing for two ressources[@TILMAN].
 You might want to have a look on the [course notes](https://www.overleaf.com/read/krhfddzjxnqc) before going any further.
 
+In this third sesssion, we are going to add a second species to the system. 
+So we will have two resources and two species, and be able to test assumptions about cohabitation. 
+
 ```{r, results='hide', message=FALSE}
 library("deSolve") # For solving differential equations
 library("FME")     # Toolbox to play with model perturbation, sensitivity analysis, etc..
@@ -22,40 +25,41 @@ library("FME")     # Toolbox to play with model perturbation, sensitivity analys
   
 # Function and parameter definitions
 
-Parameters for growth are now given for both species $N_1$ and $N_2$.
-In order to be callable for both species, the function `Growth` now receives species-specifc parameter as an input argument ( in [the 1 species case](2_Tilman_1species.pdf), those parameters where "global", here they are "local"). 
+1. Parameters for growth should now given for both species $N_1$ and $N_2$.
+
+2. Remember that, in order to be callable for both species, the function `Growth` receives species-specifc parameter as an input argument.
 
 ```{r}
 pars<-c(
-  # Populations
+  # Species N1
   mN1  = .1     ,  # mortality N1
-  mN2  = .15    ,  # mortality N2
-  # param for growth
   mu1 = .5      ,  # Max Growth 
   limN1R1 = 60  ,  # Half-Saturation R1 for N1
   limN1R2 = 10  ,  # Half-Saturation R2 for N1
-  mu2 = .5      ,  # Max Growth 
-  limN2R1 = 10  ,  # Half-Saturation R1 for N2
-  limN2R2 = 45  ,  # Half-Saturation R2 for N2
   a11     = .6  ,  # Resource preference for R1, N1 [0-1]
-  a21     = .4  ,  # Resource preference for R1, N2 [0-1]
+  
   # Resources
   g1  = 60      ,  # Supply R1 (max R1 if no consumption)
   g2  = 40      ,  # Supply R2 (max R2 if no consumption)
-  gT  = 3      ,  # Relaxation time towards max Conc
+  gT  = 3       ,  # Relaxation time towards max Conc
+
   # Initial conditions
   N1_0 = 10     ,  # Initial population N1
-  N2_0 = 30     ,  # Initial population N2
   R1_0 = 50     ,  # Initial stock R1
   R2_0 = 50     ,  # Initial stock R2
-  # Simulation
+
+    # Simulation
   duration = 300,
   dt=.1
 )
   # Ressource type
   #ftype="Essential"
   ftype="InteractiveEssential"
+```
 
+In order to be callable for both species, the function `Growth` has been built to receive species-specifc parameters as an input argument. We don't have to modify it.
+
+```{r}
 Growth<- function (R1,R2,Pp,hneed=F) {
   # Pp gives the species parameters 
   # * limR1
@@ -64,9 +68,13 @@ Growth<- function (R1,R2,Pp,hneed=F) {
   # The 'with' function executes the code in {} with elements of the list (first argument)
   #    included as part of the local environment
   with (as.list(Pp), {
+#    print(Pp)
     fR1 <- R1 / (R1 + limR1)
     fR2 <- R2 / (R2 + limR2)
-    
+ #   print('fr&,fré')
+  #  print(fR1)
+   # print(fR2)
+  #  print(R2)
     if (ftype %in% c("Essential",
                       "InteractiveEssential",
                       "PerfectlySubstitutive",
@@ -139,13 +147,20 @@ Growth<- function (R1,R2,Pp,hneed=F) {
     }
   })
 }
+```
 
+
+The function providing the temporal derivatives has to be adapted. 
+
+1. There is an additional state variables.
+2. Growth shoud be called two times, once, for each species. 
+
+```{r}
 simpleg <- function (t, X, parms) {
   with (as.list(parms), {
     N1 <- X[1]
-    N2 <- X[2]
-    R1 <- X[3]
-    R2 <- X[4]
+    R1 <- X[2]
+    R2 <- X[3]
     
     # Return the growth rate and consumption vectors for N1
     pN1<-c( limR1 = limN1R1 ,
@@ -153,51 +168,57 @@ simpleg <- function (t, X, parms) {
             mu    = mu1     , 
             a     = a11     )
     
+    # print(pN1)
+    
     G1<-Growth(R1,R2,pN1,T)
     
+    # print(G1)
     f1<-G1["f"]
     h11<-G1["h1"]
     h12<-G1["h2"]
     
-    # Return the growth rate and consumption vectors for N2
-    pN2<-c( limR1 = limN2R1 ,
-            limR2 = limN2R2 ,
-            mu    = mu2     , 
-            a     = a21     )
-    
-    G<-Growth(R1,R2,pN2,T)
-    f2<-G["f"]
-    h21<-G["h1"]
-    h22<-G["h2"]
-    
     # Time derivatives
     dN1 <- N1 * (f1 - mN1)
-    dN2 <- N2 * (f2 - mN2)
-    dR1 <-  (g1-R1)/gT - N1*f1*h11 - N2*f2*h21
-    dR2 <-  (g2-R2)/gT - N1*f1*h12 - N2*f2*h22
+
+    ## The following lines allows to include a stochastic term in the supply
+    supply1 = (g1 - R1)/gT 
+    supply2 = (g2 - R2)/gT 
+
+
+    dR1 <-   supply1 - N1*f1*h11 
+    dR2 <-   supply2 - N1*f1*h12 
+    
+    # print(dN1)
+        # print(dR1)
+            # print(dR2)
     
     # Return the time derivative
-    return(list(c(dN1, dN2, dR1 , dR2)))
+    return(list(c(dN1, dR1 , dR2)))
   })
 }
 ```
 
 # A first simulation
 
-As before we start with a dynamic run
-```{r}
+As before, start with a dynamic run and display the evolution of state variables. 
 
-X0 <- with(as.list(pars),c(N1_0,N2_0,R1_0,R2_0))
+- How should the vector of initial conditions be exteneded ? 
+
+```{r}
+X0 <- with(as.list(pars),c(N1_0,R1_0,R2_0))  
 times <- seq(0, pars["duration"], by = pars["dt"]) # output wanted at these time intervals
 
 out <- ode(y = X0, times = times, func = simpleg, parms = pars,method = "euler")
-colnames(out)<-c("time","N1","N2","R1","R2")
+colnames(out)<-c("time","N1","R1","R2") 
 plot(out)
 ```
 
-# Exploration of the resource space
+## PLOT 1 : Trajectories, Resource space and ZNGI
+
 We'll use the steady simulation to illustrate competition, trajectories and equilibrium on the resource plane.
-First let us compute the growth values over hte resource plane for $N_1$ and $N_2$.
+First let us compute the growth values over the resource plane for both $N_1$ and $N_2$.
+We will only display ZNGI for both species (ie. no colored background).
+
 ```{r, space}
 R1space <- seq(0,80, length=80)
 R2space <- seq(0,80, length=80)
@@ -207,19 +228,10 @@ with (as.list(pars), {
           limR2 = limN1R2 ,
           mu    = mu1,
           a =a11  )
-  pN2 <<-c( limR1 = limN2R1 ,
-          limR2 = limN2R2 ,
-          mu    = mu2,
-          a =a11 )
 })
   
 f1space <- outer(R1space,R2space,Growth,Pp=pN1)
-f2space <- outer(R1space,R2space,Growth,Pp=pN2)
-```
 
-## PLOT 1 : Trajectories
-
-```{r}
 # ZNGI for N1
 contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),col="red",lty = "dotted", labels="ZNGI 1",
         lwd = 3,
@@ -228,9 +240,6 @@ contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),col="red",lty = 
         xlab = "R1",
         ylab="R2")
 
-# ZNGI for N2
-contour(R1space ,R2space ,f2space,levels=as.vector(pars["mN2"]),col="red",lty = "dotted", labels="ZNGI 2",lwd = 3,vfont = c("sans serif", "plain"), labcex=1.5,add=T)
-
 # trajectories of the dynamic simulation
 lines(out[,"R1"],out[,"R2"]  )
 points(out[1,"R1"],out[1,"R2"],pch = 19)
@@ -238,33 +247,13 @@ points(out[1,"R1"],out[1,"R2"],pch = 19)
 # Equilibrium points and resource supply point
 points(out[nrow(out),"R1"],out[nrow(out),"R2"],col='red',pch = 19)
 points(pars["g1"],pars["g2"],col='blue',cex=1.5,bg='blue',pch=21)
-
-# as before, function that display a trajectory for a given set of initial condition
-fCRL<-function(parinit){
-  X0 <- with(as.list(parinit),c(N1_0,N2_0,R1_0,R2_0))
-  out<- ode(y = X0, times = times, func = simpleg, parms = pars,method="euler")
-  colnames(out)<-c("time","N1","N2","R1","R2")
-    
-  lines(out[,"R1"],out[,"R2"]  )
-  points(out[1,"R1"],out[1,"R2"],pch = 19)
-  points(out[nrow(out),"R1"],out[nrow(out),"R2"],col='red',pch = 19)
-  return(c("R1eq"=out[nrow(out),"R1"], "R2eq"=out[nrow(out),"R2"]))
-}
-
-# how initial condition should be perturbated
-parRange <- matrix(nr = 4, nc = 2, c(0.2, 0.2, 10,10 ,
-                                       50,   50, 80,80 ),
-                     dimnames = list(c("N1_0","N2_0","R1_0","R2_0"), c("min", "max")))
-print(parRange)
-  
-# the main call to perturbate parameter and display multiple trajectories
-CRL<-modCRL(fCRL,parRange=parRange,num = 20)
 ```
 
-##     PLOT2 : perturbation on the supply point
 
-Instead of perturbating initial conditions, we now perturbate supply point value. 
-You'll see that the position of the supply point determines the position of the equilibrium point somewhere over a *ZNGI*
+## PLOT2 : perturbation on the supply point
+
+We now the perturbate supply point value, as in TP2.
+
 ```{r, supply perturbation}
 
 
@@ -272,10 +261,10 @@ You'll see that the position of the supply point determines the position of the 
     parsl<-pars
     parsl[names(parinit)]<-parinit
     
-    X0 <- with(as.list(parsl),c(N1_0,N2_0,R1_0,R2_0))
+    X0 <- with(as.list(parsl),c(N1_0,R1_0,R2_0))  
     
     out<- ode(y = X0, times = times, func = simpleg, parms = parsl,method="euler")
-    colnames(out)<-c("time","N1","N2","R1","R2")
+    colnames(out)<-c("time","N1","R1","R2")  
 
     points(parsl["g1"],parsl["g2"],col='blue',cex=1.5,bg='blue',pch=21)
     
@@ -296,8 +285,7 @@ You'll see that the position of the supply point determines the position of the 
           labcex=1.5,
           xlab = "R1",
           ylab="R2")
-  contour(R1space ,R2space ,f2space,levels=as.vector(pars["mN2"]),col="red",lty = "dotted", labels="ZNGI 2",lwd = 3,vfont = c("sans serif", "plain"), labcex=1.5,add=T)
-  
+
 
   CRL<-modCRL(fCRL,parRange=parRange,num = 20)
 
@@ -306,72 +294,26 @@ You'll see that the position of the supply point determines the position of the 
 
 Finally, we will plot the supply point with a certain color, according to the results of competition at equilibrium: Which species survives? Is cohabitation possible ? 
 
-```{r, fig.height=8, fig.width=8}
+Since trajectories in the ressources plane does not provide information about species variables, we will use the color of the supply points to indicate different cases for cohabitations.
+
+In the plot above, we added the supply point with the command : 
+`points(parsl["g1"],parsl["g2"],col='blue',cex=1.5,bg='blue',pch=21)`
+
+Here, instead of "blue", we will use a variable COL, which has to be given a value "blue" if both species survive, "red" if only N1 survives, "green" if only N2 survives, and "black" if none survives. 
+
+As we've seen previously, it may take a long time for a species to actually reach a population of exactly zero. 
+Therefore, as a criterion for "non-survival", we suggest to use the fact that the population is below a given thresold, for instance `TOL =0.01`, rather than being exactly equal to zero.
 
 
-if (TRUE) {
-  
-  fCRL<-function(parinit){
-    parsl<-pars
-    parsl[names(parinit)]<-parinit
-    
-    X0 <- with(as.list(parsl),c(N1_0,N2_0,R1_0,R2_0))
-    
-    out<- ode(y = X0, times = times, func = simpleg, parms = parsl,method="euler")
-    colnames(out)<-c("time","N1","N2","R1","R2")
-    
-    # Give a color to the points according to surviving species
-    N1final <- out[length(times),"N1"]
-    N2final <- out[length(times),"N2"]
-    
-    TOL=0.01
-    if (N1final> TOL & N2final> TOL) {
-    COL="blue"  # Cohabitation
-    }
-    if (N1final > TOL & N2final <= TOL) {
-      COL="red"  # only N1 survives
-    }
-    if (N1final <= TOL & N2final> TOL) {
-      COL="green"  # only N2 survives
-    } 
-    if (N1final <= TOL & N2final <= TOL) {
-      COL="Black"  # No survival
-    } 
- 
-    points(parsl["g1"],parsl["g2"],col=COL,cex=1.5,bg=COL,pch=21)
-    lines(c(parsl["g1"],out[length(times),"R1"]),c(parsl["g2"],out[length(times),"R2"]) , lty=2 )
-    points(out[1,"R1"],out[1,"R2"],pch = 19)
-    points(out[nrow(out),"R1"],out[nrow(out),"R2"],col=COL,pch = 19)
-    return(c("R1eq"=out[nrow(out),"R1"], "R2eq"=out[nrow(out),"R2"]))
-  }
-  
-  parRange <- matrix(nr = 2, nc = 2, c(0, 0, 80,80 ,
-                                       50,   50, 80,80 ),
-                     dimnames = list(c("g1","g2"), c("min", "max")))
-  parRange
-  
-  contour(R1space ,R2space ,f1space,levels=as.vector(pars["mN1"]),col="red",lty = "dotted", labels="ZNGI 1",
-          lwd = 3,
-          vfont = c("sans serif", "plain"),
-          labcex=1.5,
-          xlab = "R1",
-          ylab="R2")
-  contour(R1space ,R2space ,f2space,levels=as.vector(pars["mN2"]),col="red",lty = "dotted", labels="ZNGI 2",lwd = 3,vfont = c("sans serif", "plain"), labcex=1.5,add=T)
-  
-  
-  CRL<-modCRL(fCRL,parRange=parRange,num = 50)
-}
+## Exercice 2 (Optionnal)
 
-```
+Can we say that heterogeneity in the system can enlarge the region of the ressource space that allows cohabitation ? 
 
+To test this, insert a random term in the ressource supply (use function `runif`), with a new paramter `gnoise`.
 
-# Exercice
+1. Can you see a change in the region of the ressource plane where supply points allow coabitation (try different valur of `gnoise`)?
 
-We want to test the hypothesis that heterogeneity in the resource support diversity.
-
-* Add a stochastic term to the supply source.
-* Display graphically the results
-
+Note that to consider a proper comparison, the function `modCRL` allows to use a fixed set of 'perturbed parameters' rather than picking random values at each time. You may also consider a regular sampling of the ressource place for the supply point (see help of `?modCRL`).
 
 
 
