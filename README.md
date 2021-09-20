@@ -11,7 +11,7 @@ Lecture's notes can be found [here](main.pdf)
 There are three type of files for each session (which are three version of the same content) : 
 * ".md" files are intended for visualization on github.
 * ".pdf" files are intended for download and local reading.
-* ".Rmd" files are intended for download and opening with Rstudio. This will allows you to modify the code inside the "R chunks". Add your own parts, test other paramters and options, etc ..
+* ".Rmd" files are intended for download and opening with Rstudio. This will allows you to modify the code inside the "R chunks". Add your own parts, test other parameters and options, etc ..
 
 In addition, the pdf [Exam2017.pdf](Exam2017.pdf) gives the list of questions for the examination of 2016-2017.
 It consists in a set of exercice very close to what is propose in the other file, based on the "dataset" [Exam2017.xls](Exam2017.xls)
