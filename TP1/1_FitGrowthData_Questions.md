@@ -30,7 +30,7 @@ biogéochimiques” (Partim : Resource competition). It consist in
 calibrating the parameter of a simple growth function, in order to
 render observation of growth rates measured at different resource
 availability. (Those data have been created artificially and are located
-in a [text file](G1R1.txt) ). To do so we will exploit functions from
+in a [text file](../data/G1R1.txt) ). To do so we will exploit functions from
 “FME” library (Soetaert and Petzoldt 2010). The notions we are going
 to consider are pretty well explained in [this
 documentation](ftp://videolan.cs.pu.edu.tw/network/CRAN/web/packages/FME/vignettes/FME.pdf "Original FME paper").
